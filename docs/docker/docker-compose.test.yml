@@ -34,7 +34,8 @@ services:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
-      target: runner
+      target: build
+    working_dir: /app
     environment:
       NODE_ENV: test
       DATABASE_URL: postgresql://lp_test:lp_test@postgres-test:5432/lp_test?schema=public

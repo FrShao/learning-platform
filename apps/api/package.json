@@ -12,11 +12,14 @@
   "dependencies": {
     "@lp/config": "workspace:*",
     "@lp/db": "workspace:*",
-    "@lp/domain": "workspace:*"
+    "@lp/domain": "workspace:*",
+    "fastify": "^5.12.8",
+    "jose": "^6.2.17",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@lp/tsconfig": "workspace:*",
-    "@types/node": "^22.13.10",
+    "@types/node": "^22.20.5",
     "tsx": "^4.19.3",
     "typescript": "^5.8.2"
   }

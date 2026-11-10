@@ -1,35 +1,45 @@
 /** Canonical domain types and pure helpers. See docs/domain-object-models.md. */
 
-export type OrgId = string;
-export type CourseId = string;
-export type UserId = string;
+export type { ApiKeyId, CourseId, OrgId, RefreshTokenId, SessionId, UserId } from './ids.js';
 
-export type OrgRole = 'owner' | 'admin' | 'author' | 'learner';
+export type {
+  AccessTokenClaims,
+  ApiKey,
+  ApiKeyCreated,
+  ApiKeyScope,
+  OAuthProvider,
+  Organization,
+  OrgMembership,
+  OrgRole,
+  OrgSettings,
+  PublicUser,
+  RefreshToken,
+  User,
+} from './identity.js';
 
-export interface Organization {
-  id: OrgId;
-  slug: string;
-  name: string;
-  createdAt: Date;
-}
+export {
+  API_KEY_SCOPES,
+  DEFAULT_ORG_SETTINGS,
+  normalizeEmail,
+  ORG_ROLES,
+  toPublicUser,
+} from './identity.js';
 
-/**
- * Normalize an organization slug: lowercase, trim, collapse internal whitespace to hyphens.
- */
-export function normalizeOrgSlug(raw: string): string {
-  return raw
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, '-')
-    .replace(/[^a-z0-9-]/g, '')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '');
-}
+export { isValidOrgSlug, normalizeOrgSlug } from './org-slug.js';
 
-/**
- * Return true when a slug is non-empty after normalization.
- */
-export function isValidOrgSlug(raw: string): boolean {
-  const slug = normalizeOrgSlug(raw);
-  return slug.length >= 2 && slug.length <= 64;
-}
+export type { OrgCapability } from './roles.js';
+export {
+  canAssignRole,
+  canChangeSoleOwner,
+  canManageMemberRole,
+  roleHasCapability,
+} from './roles.js';
+
+export { hashPassword, verifyPassword } from './password.js';
+
+export {
+  apiKeyDisplayPrefix,
+  generateApiKeySecret,
+  hashApiKey,
+  verifyApiKey,
+} from './api-key-crypto.js';

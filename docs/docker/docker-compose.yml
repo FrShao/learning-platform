@@ -163,8 +163,9 @@ services:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
-      target: runner
+      target: build
     profiles: ['test']
+    working_dir: /app
     environment:
       NODE_ENV: test
       DATABASE_URL: ${DATABASE_TEST_URL:-postgresql://lp_test:lp_test@postgres-test:5432/lp_test?schema=public}

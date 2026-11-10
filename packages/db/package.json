@@ -5,6 +5,10 @@
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "migrations"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -14,13 +18,17 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "migrate:deploy": "node ./dist/migrate-deploy.js"
+    "migrate:deploy": "node ./dist/migrate-deploy.js",
+    "drizzle:generate": "drizzle-kit generate"
   },
   "dependencies": {
-    "@lp/domain": "workspace:*"
+    "@lp/domain": "workspace:*",
+    "drizzle-orm": "^0.45.4",
+    "postgres": "^4.1.0"
   },
   "devDependencies": {
     "@lp/tsconfig": "workspace:*",
+    "drizzle-kit": "^0.31.11",
     "typescript": "^5.8.2"
   }
 }

@@ -23,6 +23,10 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",
+    "@lp/api": "workspace:^",
+    "@lp/config": "workspace:^",
+    "@lp/db": "workspace:^",
+    "@lp/domain": "workspace:^",
     "@lp/eslint-config": "workspace:*",
     "@lp/tsconfig": "workspace:*",
     "@types/node": "^22.13.10",
