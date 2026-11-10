@@ -6,6 +6,7 @@ import {
   findUserById,
   pingDb,
   touchApiKeyLastUsed,
+  type Db,
   type DbClient,
 } from '@lp/db';
 import { hashApiKey } from '@lp/domain';
@@ -13,6 +14,8 @@ import Fastify, { type FastifyInstance, type FastifyReply } from 'fastify';
 
 import type { AuthContext } from './auth/context.js';
 import { verifyAccessToken } from './auth/tokens.js';
+import { registerCourseRoutes } from './courses/routes.js';
+import { CourseService } from './courses/service.js';
 import { ApiError, unauthorized } from './errors.js';
 import { registerAuthRoutes } from './routes/auth.js';
 import { registerMeRoutes } from './routes/me.js';
@@ -27,6 +30,7 @@ declare module 'fastify' {
     dbClient: DbClient;
     authService: AuthService;
     orgService: OrgService;
+    courseService: CourseService;
     jwtSecret: string;
   }
   interface FastifyRequest {
@@ -38,12 +42,23 @@ export interface BuildAppOptions {
   env: AppEnv;
   databaseUrl: string;
   jwtSecret: string;
+  /** Inject a Db for tests; skips creating a new client when provided with closeDbOnClose=false. */
+  db?: Db;
   /** When false, caller owns closing the DB client. Default true for production boot. */
   closeDbOnClose?: boolean;
 }
 
 export async function buildApp(options: BuildAppOptions): Promise<FastifyInstance> {
-  const client = createDbClient(options.databaseUrl);
+  const injectedDb = Boolean(options.db);
+  const client: DbClient = options.db
+    ? {
+        db: options.db,
+        sql: (() => {
+          throw new Error('sql not available for injected Db');
+        }) as unknown as DbClient['sql'],
+        close: async () => undefined,
+      }
+    : createDbClient(options.databaseUrl);
   const app = Fastify({
     logger: options.env.nodeEnv !== 'test',
   });
@@ -52,6 +67,7 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
   app.decorate('jwtSecret', options.jwtSecret);
   app.decorate('authService', new AuthService(client, options.env, options.jwtSecret));
   app.decorate('orgService', new OrgService(client));
+  app.decorate('courseService', new CourseService(client.db));
   app.decorateRequest('auth', null);
 
   app.addHook('onRequest', async (request) => {
@@ -133,6 +149,13 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
   });
 
   app.get('/health', async () => {
+    if (injectedDb) {
+      return {
+        status: 'ok',
+        service: 'api',
+        db: { ok: true, message: 'injected db' },
+      };
+    }
     const db = await pingDb(client);
     return {
       status: db.ok ? 'ok' : 'degraded',
@@ -150,8 +173,9 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
   await registerAuthRoutes(app);
   await registerMeRoutes(app);
   await registerOrgRoutes(app);
+  await registerCourseRoutes(app, app.courseService);
 
-  const closeDb = options.closeDbOnClose !== false;
+  const closeDb = options.closeDbOnClose !== false && !options.db;
   if (closeDb) {
     app.addHook('onClose', async () => {
       await client.close();

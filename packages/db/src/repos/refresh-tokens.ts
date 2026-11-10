@@ -3,7 +3,7 @@ import { and, eq, gt, isNull } from 'drizzle-orm';
 
 import type { Db } from '../client.js';
 import { mapRefreshToken } from '../mappers.js';
-import { refreshTokens } from '../schema.js';
+import { refreshTokens } from '../schema/identity.js';
 
 export async function insertRefreshToken(
   db: Db,

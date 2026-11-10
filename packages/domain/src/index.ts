@@ -110,3 +110,33 @@ export type {
 export { isAutoGradable } from './grading/auto-gradable.js';
 export { gradeQuestion } from './grading/grade-question.js';
 export { gradeForm, gradeFormOrThrow } from './grading/grade-form.js';
+
+export type {
+  Actor,
+  Course,
+  CourseBranch,
+  CourseCommit,
+  CourseSnapshot,
+  CourseWorkingTree,
+  TreeDiff,
+  TreeDiffEntry,
+  TreeDiffKind,
+  TreePatch,
+  TreePatchOp,
+} from './course/types.js';
+
+export { DomainError } from './course/types.js';
+
+export {
+  applyTreePatch,
+  canonicalizeTreeJson,
+  cloneCourseTree,
+  diffCourseTrees,
+  emptyCourseTree,
+  hashCourseTree,
+  isValidBranchName,
+  isValidCourseSlug,
+  normalizeCourseSlug,
+  normalizeSectionOrders,
+  validateCourseTree,
+} from './course/index.js';

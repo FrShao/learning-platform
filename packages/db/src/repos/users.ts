@@ -3,7 +3,7 @@ import { and, eq, isNull } from 'drizzle-orm';
 
 import type { Db } from '../client.js';
 import { mapUser } from '../mappers.js';
-import { users } from '../schema.js';
+import { users } from '../schema/identity.js';
 
 export async function insertUser(
   db: Db,

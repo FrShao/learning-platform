@@ -18,3 +18,15 @@ try {
   app.log.error(err);
   process.exit(1);
 }
+
+async function shutdown(): Promise<void> {
+  await app.close();
+  process.exit(0);
+}
+
+process.on('SIGINT', () => {
+  void shutdown();
+});
+process.on('SIGTERM', () => {
+  void shutdown();
+});
