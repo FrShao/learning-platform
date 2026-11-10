@@ -1,0 +1,196 @@
+[
+  {
+    "id": "all-auto-correct-pending-long-text",
+    "description": "All auto-gradable correct; long_text pending keeps passed null",
+    "passRuleOverride": null,
+    "answers": [
+      { "questionId": "st", "type": "short_text", "value": " hello " },
+      { "questionId": "st_cs", "type": "short_text", "value": "Token" },
+      { "questionId": "st_free", "type": "short_text", "value": "freeform" },
+      { "questionId": "ss", "type": "single_select", "optionId": "opt_b" },
+      { "questionId": "ms", "type": "multi_select", "optionIds": ["m3", "m1"] },
+      { "questionId": "bo", "type": "boolean", "value": true },
+      { "questionId": "nu", "type": "number", "value": 10.2 },
+      { "questionId": "lt", "type": "long_text", "value": "Because of evidence X" }
+    ],
+    "expected": {
+      "score": 1,
+      "passed": null,
+      "statuses": {
+        "st": "correct",
+        "st_cs": "correct",
+        "st_free": "ungraded",
+        "ss": "correct",
+        "ms": "correct",
+        "bo": "correct",
+        "nu": "correct",
+        "lt": "pending"
+      }
+    }
+  },
+  {
+    "id": "short-text-case-fail",
+    "description": "caseSensitive short_text mismatch is incorrect",
+    "passRuleOverride": null,
+    "answers": [
+      { "questionId": "st", "type": "short_text", "value": "HELLO" },
+      { "questionId": "st_cs", "type": "short_text", "value": "token" },
+      { "questionId": "st_free", "type": "short_text", "value": "x" },
+      { "questionId": "ss", "type": "single_select", "optionId": "opt_b" },
+      { "questionId": "ms", "type": "multi_select", "optionIds": ["m1", "m3"] },
+      { "questionId": "bo", "type": "boolean", "value": true },
+      { "questionId": "nu", "type": "number", "value": 10 },
+      { "questionId": "lt", "type": "long_text", "value": "…" }
+    ],
+    "expected": {
+      "score": 0.8333333333,
+      "passed": false,
+      "statuses": {
+        "st": "correct",
+        "st_cs": "incorrect",
+        "st_free": "ungraded",
+        "ss": "correct",
+        "ms": "correct",
+        "bo": "correct",
+        "nu": "correct",
+        "lt": "pending"
+      }
+    }
+  },
+  {
+    "id": "multi-select-subset-fail",
+    "description": "multi_select requires exact set equality",
+    "passRuleOverride": null,
+    "answers": [
+      { "questionId": "st", "type": "short_text", "value": "Hello" },
+      { "questionId": "st_cs", "type": "short_text", "value": "Token" },
+      { "questionId": "st_free", "type": "short_text", "value": "x" },
+      { "questionId": "ss", "type": "single_select", "optionId": "opt_b" },
+      { "questionId": "ms", "type": "multi_select", "optionIds": ["m1"] },
+      { "questionId": "bo", "type": "boolean", "value": true },
+      { "questionId": "nu", "type": "number", "value": 10 },
+      { "questionId": "lt", "type": "long_text", "value": "…" }
+    ],
+    "expected": {
+      "score": 0.8333333333,
+      "passed": false,
+      "statuses": {
+        "st": "correct",
+        "st_cs": "correct",
+        "st_free": "ungraded",
+        "ss": "correct",
+        "ms": "incorrect",
+        "bo": "correct",
+        "nu": "correct",
+        "lt": "pending"
+      }
+    }
+  },
+  {
+    "id": "number-outside-tolerance",
+    "description": "number fails when outside absolute tolerance",
+    "passRuleOverride": null,
+    "answers": [
+      { "questionId": "st", "type": "short_text", "value": "Hello" },
+      { "questionId": "st_cs", "type": "short_text", "value": "Token" },
+      { "questionId": "st_free", "type": "short_text", "value": "x" },
+      { "questionId": "ss", "type": "single_select", "optionId": "opt_b" },
+      { "questionId": "ms", "type": "multi_select", "optionIds": ["m1", "m3"] },
+      { "questionId": "bo", "type": "boolean", "value": true },
+      { "questionId": "nu", "type": "number", "value": 10.5 },
+      { "questionId": "lt", "type": "long_text", "value": "…" }
+    ],
+    "expected": {
+      "score": 0.8333333333,
+      "passed": false,
+      "statuses": {
+        "st": "correct",
+        "st_cs": "correct",
+        "st_free": "ungraded",
+        "ss": "correct",
+        "ms": "correct",
+        "bo": "correct",
+        "nu": "incorrect",
+        "lt": "pending"
+      }
+    }
+  },
+  {
+    "id": "min-score-pass-with-pending",
+    "description": "min_score met on auto portion; pending long_text keeps passed null",
+    "passRuleOverride": { "mode": "min_score", "min": 0.5 },
+    "answers": [
+      { "questionId": "st", "type": "short_text", "value": "Hello" },
+      { "questionId": "st_cs", "type": "short_text", "value": "wrong" },
+      { "questionId": "st_free", "type": "short_text", "value": "x" },
+      { "questionId": "ss", "type": "single_select", "optionId": "opt_b" },
+      { "questionId": "ms", "type": "multi_select", "optionIds": ["m1", "m3"] },
+      { "questionId": "bo", "type": "boolean", "value": false },
+      { "questionId": "nu", "type": "number", "value": 10 },
+      { "questionId": "lt", "type": "long_text", "value": "…" }
+    ],
+    "expected": {
+      "score": 0.6666666667,
+      "passed": null,
+      "statuses": {
+        "st": "correct",
+        "st_cs": "incorrect",
+        "st_free": "ungraded",
+        "ss": "correct",
+        "ms": "correct",
+        "bo": "incorrect",
+        "nu": "correct",
+        "lt": "pending"
+      }
+    }
+  },
+  {
+    "id": "min-score-fail",
+    "description": "min_score unmet yields passed false even with pending long_text",
+    "passRuleOverride": { "mode": "min_score", "min": 0.9 },
+    "answers": [
+      { "questionId": "st", "type": "short_text", "value": "Hello" },
+      { "questionId": "st_cs", "type": "short_text", "value": "wrong" },
+      { "questionId": "st_free", "type": "short_text", "value": "x" },
+      { "questionId": "ss", "type": "single_select", "optionId": "opt_b" },
+      { "questionId": "ms", "type": "multi_select", "optionIds": ["m1", "m3"] },
+      { "questionId": "bo", "type": "boolean", "value": true },
+      { "questionId": "nu", "type": "number", "value": 10 },
+      { "questionId": "lt", "type": "long_text", "value": "…" }
+    ],
+    "expected": {
+      "score": 0.8333333333,
+      "passed": false,
+      "statuses": {
+        "st": "correct",
+        "st_cs": "incorrect",
+        "st_free": "ungraded",
+        "ss": "correct",
+        "ms": "correct",
+        "bo": "correct",
+        "nu": "correct",
+        "lt": "pending"
+      }
+    }
+  },
+  {
+    "id": "missing-answers-count-incorrect",
+    "description": "Missing auto-gradable answers are incorrect; free short_text stays ungraded",
+    "passRuleOverride": null,
+    "answers": [{ "questionId": "lt", "type": "long_text", "value": "only essay" }],
+    "expected": {
+      "score": 0,
+      "passed": false,
+      "statuses": {
+        "st": "incorrect",
+        "st_cs": "incorrect",
+        "st_free": "ungraded",
+        "ss": "incorrect",
+        "ms": "incorrect",
+        "bo": "incorrect",
+        "nu": "incorrect",
+        "lt": "pending"
+      }
+    }
+  }
+]

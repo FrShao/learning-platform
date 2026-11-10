@@ -1,0 +1,66 @@
+{
+  "title": "Regression mixed form",
+  "passRule": { "mode": "all_correct" },
+  "questions": [
+    {
+      "id": "st",
+      "type": "short_text",
+      "prompt": "Greeting",
+      "expected": "Hello",
+      "caseSensitive": false
+    },
+    {
+      "id": "st_cs",
+      "type": "short_text",
+      "prompt": "Token",
+      "expected": "Token",
+      "caseSensitive": true
+    },
+    {
+      "id": "st_free",
+      "type": "short_text",
+      "prompt": "Notes"
+    },
+    {
+      "id": "ss",
+      "type": "single_select",
+      "prompt": "Choose one",
+      "options": [
+        { "id": "opt_a", "label": "A" },
+        { "id": "opt_b", "label": "B" },
+        { "id": "opt_c", "label": "C" }
+      ],
+      "correctOptionId": "opt_b"
+    },
+    {
+      "id": "ms",
+      "type": "multi_select",
+      "prompt": "Choose all",
+      "options": [
+        { "id": "m1", "label": "One" },
+        { "id": "m2", "label": "Two" },
+        { "id": "m3", "label": "Three" }
+      ],
+      "correctOptionIds": ["m1", "m3"]
+    },
+    {
+      "id": "bo",
+      "type": "boolean",
+      "prompt": "True statement?",
+      "correct": true
+    },
+    {
+      "id": "nu",
+      "type": "number",
+      "prompt": "Approx 10",
+      "correct": 10,
+      "tolerance": 0.25
+    },
+    {
+      "id": "lt",
+      "type": "long_text",
+      "prompt": "Explain your reasoning",
+      "rubric": "Must mention evidence"
+    }
+  ]
+}
