@@ -1,0 +1,191 @@
+'use client';
+
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import { useCallback, useEffect, useState } from 'react';
+
+import { EmptyState, ErrorState, LoadingBlock } from '@/components/states/async-state';
+import { Button } from '@/components/ui/button';
+import { Modal } from '@/components/ui/modal';
+import { api } from '@/lib/api/client';
+import type { CourseBranchDto, CourseDto, WorkingTreeDto } from '@/lib/api/types';
+import { errorMessage, shortId } from '@/lib/format';
+
+export default function CourseOverviewPage() {
+  const { orgId, courseId } = useParams<{ orgId: string; courseId: string }>();
+  const [course, setCourse] = useState<CourseDto | null>(null);
+  const [branches, setBranches] = useState<CourseBranchDto[]>([]);
+  const [tree, setTree] = useState<WorkingTreeDto | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [publishOpen, setPublishOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [publishError, setPublishError] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const courseData = await api.getCourse(courseId);
+      const branchData = await api.listBranches(courseId).catch(() => [] as CourseBranchDto[]);
+      setCourse(courseData);
+      setBranches(branchData);
+      const branch = courseData.defaultBranch || 'main';
+      const treeData = await api.getWorkingTree(courseId, branch).catch(() => null);
+      setTree(treeData);
+    } catch (err) {
+      setError(errorMessage(err, 'Could not load course'));
+    } finally {
+      setLoading(false);
+    }
+  }, [courseId]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  async function publishHead() {
+    const branch = branches.find((b) => b.name === course?.defaultBranch) ?? branches[0];
+    const commitId = branch?.headCommitId;
+    if (!commitId) {
+      setPublishError('No branch head commit to publish yet. Commit from the editor first.');
+      return;
+    }
+    setBusy(true);
+    setPublishError(null);
+    try {
+      await api.publish(courseId, { commit_id: commitId });
+      setPublishOpen(false);
+      await load();
+    } catch (err) {
+      setPublishError(errorMessage(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (loading) return <LoadingBlock />;
+  if (error) return <ErrorState message={error} onRetry={() => void load()} />;
+  if (!course) return <EmptyState title="Course not found" />;
+
+  const branch = course.defaultBranch || 'main';
+  const editHref = `/app/orgs/${orgId}/courses/${courseId}/edit/branches/${encodeURIComponent(branch)}`;
+
+  return (
+    <div className="page">
+      <div className="page-header">
+        <div>
+          <h1>{course.title}</h1>
+          <p>{course.description || 'No description yet.'}</p>
+          <div className="meta-row" style={{ marginTop: '0.65rem' }}>
+            <span>/{course.slug}</span>
+            <span>default branch: {course.defaultBranch}</span>
+            {course.publishedCommitId ? (
+              <span className="badge ok">Published {shortId(course.publishedCommitId)}</span>
+            ) : (
+              <span className="badge warn">Unpublished</span>
+            )}
+          </div>
+        </div>
+        <div className="cta-row">
+          <Link className="btn btn-primary" href={editHref}>
+            Open editor
+          </Link>
+          <Button variant="secondary" onClick={() => setPublishOpen(true)}>
+            Publish…
+          </Button>
+        </div>
+      </div>
+
+      {!course.publishedCommitId ? (
+        <div className="panel">
+          <strong>Not published yet.</strong>
+          <p className="muted" style={{ margin: '0.35rem 0 0' }}>
+            Learners only see a course after you publish a commit.
+          </p>
+        </div>
+      ) : null}
+
+      <div className="hub-grid">
+        <Link className="hub-tile" href={editHref}>
+          <h3>Editor</h3>
+          <p>Edit the working tree on {branch}.</p>
+        </Link>
+        <Link
+          className="hub-tile"
+          href={`/app/orgs/${orgId}/courses/${courseId}/history?branch=${encodeURIComponent(branch)}`}
+        >
+          <h3>History</h3>
+          <p>Browse commits and publish from a snapshot.</p>
+        </Link>
+        <Link className="hub-tile" href={`/app/orgs/${orgId}/courses/${courseId}/branches`}>
+          <h3>Branches</h3>
+          <p>
+            {branches.length || '—'} branch{branches.length === 1 ? '' : 'es'}
+          </p>
+        </Link>
+        {course.publishedCommitId ? (
+          <Link className="hub-tile" href={`/app/orgs/${orgId}/learn/${courseId}`}>
+            <h3>Learner preview</h3>
+            <p>Open the published course detail.</p>
+          </Link>
+        ) : null}
+      </div>
+
+      <section className="panel">
+        <h2 style={{ marginTop: 0, fontSize: '1.1rem' }}>Outline (working tree)</h2>
+        {!tree || tree.dirtyTree.sections.length === 0 ? (
+          <EmptyState
+            title="No sections yet"
+            description="Open the editor and add sections to the working tree."
+            action={
+              <Link className="btn btn-secondary" href={editHref}>
+                Open editor
+              </Link>
+            }
+          />
+        ) : (
+          <div className="card-list">
+            {tree.dirtyTree.sections
+              .slice()
+              .sort((a, b) => a.order - b.order)
+              .map((s) => (
+                <div key={s.id} className="list-row">
+                  <div>
+                    <strong>
+                      {s.order + 1}. {s.title}
+                    </strong>
+                    <div className="meta-row">
+                      <span>/{s.slug}</span>
+                      <span>{s.blocks.length} blocks</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+          </div>
+        )}
+      </section>
+
+      {publishOpen ? (
+        <Modal
+          title="Publish course"
+          onClose={() => setPublishOpen(false)}
+          footer={
+            <>
+              <Button variant="ghost" onClick={() => setPublishOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={() => void publishHead()} disabled={busy}>
+                {busy ? 'Publishing…' : 'Publish to learners'}
+              </Button>
+            </>
+          }
+        >
+          <p>Publishes the current default-branch head commit to learners.</p>
+          <p className="muted">Progress policy default: keep prior learner progress pins.</p>
+          {publishError ? <p className="form-error">{publishError}</p> : null}
+        </Modal>
+      ) : null}
+    </div>
+  );
+}
