@@ -17,6 +17,7 @@ import { verifyAccessToken } from './auth/tokens.js';
 import { registerCourseRoutes } from './courses/routes.js';
 import { CourseService } from './courses/service.js';
 import { ApiError, unauthorized } from './errors.js';
+import { registerLearnerRoutes } from './learner/register.js';
 import { registerAuthRoutes } from './routes/auth.js';
 import { registerMeRoutes } from './routes/me.js';
 import { registerOrgRoutes } from './routes/orgs.js';
@@ -174,6 +175,7 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
   await registerMeRoutes(app);
   await registerOrgRoutes(app);
   await registerCourseRoutes(app, app.courseService);
+  await registerLearnerRoutes(app, client);
 
   const closeDb = options.closeDbOnClose !== false && !options.db;
   if (closeDb) {
