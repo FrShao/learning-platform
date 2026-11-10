@@ -1,0 +1,50 @@
+{
+  "blocks": [
+    {
+      "id": "blk_text",
+      "type": "text",
+      "markdown": "## Introduction\n\nWelcome to the lesson."
+    },
+    {
+      "id": "blk_image",
+      "type": "image",
+      "assetId": "asset_diagram_1",
+      "alt": "Process diagram",
+      "caption": "Figure 1"
+    },
+    {
+      "id": "blk_graph_chart",
+      "type": "graph",
+      "spec": {
+        "kind": "chart",
+        "chart": "bar",
+        "data": { "labels": ["A", "B"], "values": [1, 2] },
+        "options": { "legend": false }
+      }
+    },
+    {
+      "id": "blk_graph_diagram",
+      "type": "graph",
+      "spec": {
+        "kind": "diagram",
+        "format": "mermaid",
+        "source": "graph TD; Start-->End"
+      }
+    },
+    {
+      "id": "blk_form",
+      "type": "form",
+      "form": {
+        "title": "Quick check",
+        "questions": [
+          {
+            "id": "q_bool",
+            "type": "boolean",
+            "prompt": "Ready?",
+            "correct": true
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,6 +1,23 @@
 /** Canonical domain types and pure helpers. See docs/domain-object-models.md. */
 
-export type { ApiKeyId, CourseId, OrgId, RefreshTokenId, SessionId, UserId } from './ids.js';
+export type {
+  ApiKeyId,
+  AssetId,
+  ContentBlockId,
+  CourseBranchId,
+  CourseCommitId,
+  CourseId,
+  CourseSnapshotId,
+  EnrollmentId,
+  FormAttemptId,
+  OptionId,
+  OrgId,
+  QuestionId,
+  RefreshTokenId,
+  SectionId,
+  SessionId,
+  UserId,
+} from './ids.js';
 
 export type {
   AccessTokenClaims,
@@ -43,3 +60,53 @@ export {
   hashApiKey,
   verifyApiKey,
 } from './api-key-crypto.js';
+
+export type {
+  BlockBase,
+  BooleanQuestion,
+  ChartGraphSpec,
+  ChartKind,
+  ContentBlock,
+  ContentBlockType,
+  CourseTree,
+  DiagramFormat,
+  DiagramGraphSpec,
+  FormBlock,
+  FormSpec,
+  GraphBlock,
+  GraphKind,
+  GraphSpec,
+  ImageBlock,
+  LongTextQuestion,
+  MultiSelectQuestion,
+  NumberQuestion,
+  Option,
+  PassRule,
+  PassRuleMode,
+  Question,
+  QuestionBase,
+  QuestionType,
+  Section,
+  ShortTextQuestion,
+  SingleSelectQuestion,
+  TextBlock,
+} from './content/types.js';
+
+export { DEFAULT_PASS_RULE } from './content/types.js';
+
+export type { ValidationIssue, ValidationResult } from './content/validate.js';
+export { validateContentBlock, validateFormSpec, validateGraphSpec } from './content/validate.js';
+
+export type {
+  AnswerValue,
+  FormGradeResult,
+  GradeFormError,
+  GradeFormErrorCode,
+  GradeFormOutcome,
+  QuestionGrade,
+  QuestionGradeStatus,
+} from './grading/types.js';
+
+export { isAutoGradable } from './grading/auto-gradable.js';
+export { gradeQuestion } from './grading/grade-question.js';
+export { gradeForm, gradeFormOrThrow } from './grading/grade-form.js';
