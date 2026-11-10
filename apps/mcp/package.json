@@ -10,9 +10,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@lp/config": "workspace:*",
-    "@lp/db": "workspace:*",
-    "@lp/domain": "workspace:*"
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@lp/tsconfig": "workspace:*",

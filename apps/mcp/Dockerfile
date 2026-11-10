@@ -12,9 +12,6 @@ WORKDIR /app
 
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ./
 COPY apps/mcp/package.json ./apps/mcp/
-COPY packages/domain/package.json ./packages/domain/
-COPY packages/db/package.json ./packages/db/
-COPY packages/config/package.json ./packages/config/
 COPY packages/tsconfig/package.json ./packages/tsconfig/
 
 RUN pnpm install --frozen-lockfile || pnpm install
@@ -23,10 +20,7 @@ RUN pnpm install --frozen-lockfile || pnpm install
 FROM deps AS build
 WORKDIR /app
 COPY . .
-RUN pnpm --filter @lp/domain build \
- && pnpm --filter @lp/db build \
- && pnpm --filter @lp/config build \
- && pnpm --filter @lp/mcp build \
+RUN pnpm --filter @lp/mcp build \
  && pnpm deploy --filter=@lp/mcp --prod /out
 
 # ---------- runner ----------
@@ -38,6 +32,8 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV MCP_HTTP_PORT=3100
+# Health-only in Compose by default; local MCP clients use stdio (MCP_TRANSPORT unset/stdio).
+ENV MCP_TRANSPORT=none
 
 COPY --from=build --chown=lp:lp /out ./
 

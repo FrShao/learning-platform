@@ -1,29 +1,47 @@
-import { createServer } from 'node:http';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 
-import { loadEnv } from '@lp/config';
+import { createHttpApiClient } from './api/client.js';
+import { loadMcpConfig } from './config.js';
+import { startHealthServer } from './health.js';
+import { createAuthoringMcpServer } from './server.js';
 
-const env = loadEnv();
-const portRaw = process.env['MCP_HTTP_PORT'] ?? String(env.port === 3000 ? 3100 : env.port);
-const port = Number.parseInt(portRaw, 10);
-const listenPort = Number.isFinite(port) ? port : 3100;
+async function main(): Promise<void> {
+  const config = loadMcpConfig();
 
-const server = createServer((req, res) => {
-  if (req.url === '/health' && req.method === 'GET') {
-    res.writeHead(200, { 'content-type': 'application/json' });
-    res.end(JSON.stringify({ status: 'ok', service: 'mcp' }));
+  startHealthServer(config.httpPort);
+
+  if (!config.enableStdio) {
+    console.error('[mcp] MCP_TRANSPORT=none; health-only mode');
     return;
   }
 
-  res.writeHead(200, { 'content-type': 'application/json' });
-  res.end(
-    JSON.stringify({
-      name: 'learning-platform-mcp',
-      status: 'stub',
-      message: 'MCP tools will share domain services with the REST API',
-    }),
-  );
-});
+  if (!config.apiKey) {
+    console.error(
+      '[mcp] warning: LP_API_KEY / API_KEY is empty; tool calls to the API will fail auth',
+    );
+  }
 
-server.listen(listenPort, () => {
-  console.log(`[mcp] listening on :${listenPort}`);
+  const clientOpts: { apiBaseUrl: string; apiKey: string } = {
+    apiBaseUrl: config.apiBaseUrl,
+    apiKey: config.apiKey,
+  };
+  const api = createHttpApiClient(clientOpts);
+
+  const serverOpts: {
+    api: typeof api;
+    defaultOrgId?: string;
+  } = { api };
+  if (config.defaultOrgId !== undefined) {
+    serverOpts.defaultOrgId = config.defaultOrgId;
+  }
+
+  const server = createAuthoringMcpServer(serverOpts);
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+  console.error(`[mcp] stdio transport ready (api=${config.apiBaseUrl}); tools registered`);
+}
+
+main().catch((err: unknown) => {
+  console.error('[mcp] fatal', err);
+  process.exit(1);
 });
