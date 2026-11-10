@@ -1,0 +1,67 @@
+# Learning Platform — standalone CI / integration-test stack (ephemeral Postgres)
+# Usage (from repo root after copying artifacts):
+#   docker compose -f docker-compose.test.yml up --build --abort-on-container-exit --exit-code-from integration-tests
+#   docker compose -f docker-compose.test.yml down -v
+#
+# Do NOT merge with docker-compose.yml — that would also start the durable postgres/api/web/mcp stack.
+# Local alternative: docker compose --profile test run --rm --build integration-tests
+# (services defined on the main compose file under profiles: [test]).
+
+name: learning-platform-test
+
+networks:
+  lp_net:
+    driver: bridge
+
+services:
+  postgres-test:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: lp_test
+      POSTGRES_PASSWORD: lp_test
+      POSTGRES_DB: lp_test
+    tmpfs:
+      - /var/lib/postgresql/data
+    networks: [lp_net]
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U lp_test -d lp_test']
+      interval: 3s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+
+  migrate:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: runner
+    environment:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://lp_test:lp_test@postgres-test:5432/lp_test?schema=public
+    networks: [lp_net]
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+    command: ['pnpm', '--filter', '@lp/db', 'migrate:deploy']
+    restart: 'no'
+
+  integration-tests:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: build
+    working_dir: /app
+    environment:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://lp_test:lp_test@postgres-test:5432/lp_test?schema=public
+      JWT_SECRET: test-jwt-secret-not-for-prod
+      # In-process or sidecar: tests may boot the API against DATABASE_URL
+      API_URL: http://127.0.0.1:3000
+    networks: [lp_net]
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    command: ['pnpm', 'test:integration']
+    restart: 'no'

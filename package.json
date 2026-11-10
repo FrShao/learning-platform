@@ -1,0 +1,40 @@
+{
+  "name": "learning-platform",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@9.15.9",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "pnpm -r --filter=./packages/* build && pnpm -r --filter=./apps/* build",
+    "dev": "pnpm -r --parallel --filter=./apps/* dev",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc -b --pretty false && pnpm --filter @lp/web typecheck",
+    "test": "vitest run",
+    "test:unit": "vitest run --project unit",
+    "test:integration": "vitest run --project integration",
+    "test:regression": "vitest run --project regression",
+    "test:smoke": "tsx scripts/smoke.ts",
+    "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test:unit"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.22.0",
+    "@lp/eslint-config": "workspace:*",
+    "@lp/tsconfig": "workspace:*",
+    "@types/node": "^22.13.10",
+    "@typescript-eslint/eslint-plugin": "^8.26.1",
+    "@typescript-eslint/parser": "^8.26.1",
+    "eslint": "^9.22.0",
+    "eslint-config-prettier": "^10.1.1",
+    "eslint-plugin-import": "^2.31.0",
+    "globals": "^16.0.0",
+    "prettier": "^3.5.3",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2",
+    "vitest": "^3.0.8"
+  }
+}

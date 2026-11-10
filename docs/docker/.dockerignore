@@ -1,0 +1,44 @@
+# Learning Platform — root .dockerignore (copy to repo root)
+# Keep build context lean; Dockerfiles need workspace sources + manifests only.
+
+.git
+.gitignore
+**/.DS_Store
+
+**/node_modules
+**/.pnpm-store
+**/dist
+**/build
+**/.next
+**/coverage
+**/.turbo
+**/.cache
+
+# Env & secrets — never send to the daemon
+.env
+.env.*
+!.env.example
+**/*.pem
+**/secrets/
+
+# Tests & fixtures (not needed in production images)
+tests/
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+
+# Docs / IDE / CI noise
+docs/
+*.md
+!**/package.json
+.vscode/
+.idea/
+.github/
+.cursor/
+**/*.vsix
+
+# Local Docker artifacts if nested
+**/docker-compose*.yml
+Dockerfile*
+!apps/*/Dockerfile
