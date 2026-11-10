@@ -4,7 +4,7 @@ import { and, count, eq, isNull } from 'drizzle-orm';
 
 import type { Db } from '../client.js';
 import { mapMembership, mapOrganization, mapUser } from '../mappers.js';
-import { orgMemberships, organizations, users } from '../schema.js';
+import { orgMemberships, organizations, users } from '../schema/identity.js';
 
 export async function insertOrganization(
   db: Db,

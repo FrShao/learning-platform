@@ -1,7 +1,8 @@
-export { createDbClient, type Db, type DbClient } from './client.js';
+export { createDb, createDbClient, type Db, type DbClient } from './client.js';
 export { getDbHealth, pingDb, type DbHealth } from './health.js';
-export * from './schema.js';
+export * from './schema/index.js';
 export { mapApiKey, mapMembership, mapOrganization, mapRefreshToken, mapUser } from './mappers.js';
+export { mapBranch, mapCommit, mapCourse, mapSnapshot, mapWorkingTree } from './mappers/courses.js';
 
 export { findUserByEmail, findUserById, insertUser } from './repos/users.js';
 
@@ -32,3 +33,9 @@ export {
   insertRefreshToken,
   revokeRefreshToken,
 } from './repos/refresh-tokens.js';
+
+export {
+  CourseRepository,
+  ensurePostgresExtensions,
+  type CreateCourseInput,
+} from './repositories/courses.js';

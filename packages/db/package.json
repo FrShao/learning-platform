@@ -16,7 +16,7 @@
     }
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && mkdir -p dist/migrations && cp migrations/*.sql dist/migrations/",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "migrate:deploy": "node ./dist/migrate-deploy.js",
     "drizzle:generate": "drizzle-kit generate"

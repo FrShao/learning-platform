@@ -16,7 +16,7 @@ import type {
   OrgMembershipRow,
   RefreshTokenRow,
   UserRow,
-} from './schema.js';
+} from './schema/index.js';
 
 function asDate(value: Date | string): Date {
   return value instanceof Date ? value : new Date(value);

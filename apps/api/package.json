@@ -10,6 +10,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@fastify/cors": "^11.4.1",
     "@lp/config": "workspace:*",
     "@lp/db": "workspace:*",
     "@lp/domain": "workspace:*",

@@ -3,7 +3,7 @@ import { and, eq, isNull } from 'drizzle-orm';
 
 import type { Db } from '../client.js';
 import { mapApiKey } from '../mappers.js';
-import { apiKeys } from '../schema.js';
+import { apiKeys } from '../schema/identity.js';
 
 export async function insertApiKey(
   db: Db,
