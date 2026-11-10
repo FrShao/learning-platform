@@ -1,34 +1,20 @@
-import { createServer } from 'node:http';
+import { loadEnv, requireRuntimeSecrets } from '@lp/config';
 
-import { loadEnv } from '@lp/config';
-import { getDbHealth } from '@lp/db';
+import { buildApp } from './app.js';
 
 const env = loadEnv();
+const secrets = requireRuntimeSecrets(env);
 
-const server = createServer((req, res) => {
-  if (req.url === '/health' && req.method === 'GET') {
-    const db = getDbHealth(env.databaseUrl);
-    res.writeHead(200, { 'content-type': 'application/json' });
-    res.end(
-      JSON.stringify({
-        status: 'ok',
-        service: 'api',
-        db,
-      }),
-    );
-    return;
-  }
-
-  if (req.url === '/v1' || req.url === '/v1/') {
-    res.writeHead(200, { 'content-type': 'application/json' });
-    res.end(JSON.stringify({ name: 'learning-platform-api', version: 'v1', status: 'stub' }));
-    return;
-  }
-
-  res.writeHead(404, { 'content-type': 'application/json' });
-  res.end(JSON.stringify({ error: { code: 'not_found', message: 'Not found' } }));
+const app = await buildApp({
+  env,
+  databaseUrl: secrets.databaseUrl,
+  jwtSecret: secrets.jwtSecret,
 });
 
-server.listen(env.port, () => {
+try {
+  await app.listen({ port: env.port, host: '0.0.0.0' });
   console.log(`[api] listening on :${env.port}`);
-});
+} catch (err) {
+  app.log.error(err);
+  process.exit(1);
+}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { isValidOrgSlug, normalizeOrgSlug } from './index.js';
+import { isValidOrgSlug, normalizeOrgSlug } from './org-slug.js';
 
 describe('normalizeOrgSlug', () => {
   it('lowercases and trims', () => {
@@ -20,5 +20,9 @@ describe('isValidOrgSlug', () => {
 
   it('accepts normalized multi-character slugs', () => {
     expect(isValidOrgSlug('acme')).toBe(true);
+  });
+
+  it('rejects leading or trailing hyphens after normalization edge cases', () => {
+    expect(isValidOrgSlug('--')).toBe(false);
   });
 });

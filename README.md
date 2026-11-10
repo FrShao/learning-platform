@@ -40,10 +40,22 @@ pnpm --filter @lp/domain build
 pnpm --filter @lp/db build
 pnpm --filter @lp/config build
 
+# Postgres (Compose) then migrate
+docker compose up -d postgres
+export DATABASE_URL=postgresql://lp:lp_dev_change_me@127.0.0.1:5432/learning_platform
+export JWT_SECRET=dev-only-change-me-in-prod
+pnpm --filter @lp/db migrate:deploy
+
 # Terminals (or use pnpm --filter <pkg> dev)
 pnpm --filter @lp/api dev     # http://localhost:3000/health
 pnpm --filter @lp/mcp dev     # http://localhost:3100/health
 pnpm --filter @lp/web dev     # http://localhost:3001
+```
+
+Integration tests (ephemeral Postgres + migrate):
+
+```bash
+docker compose -f docker-compose.test.yml up --build --abort-on-container-exit --exit-code-from integration-tests
 ```
 
 ## Quick start (Docker)

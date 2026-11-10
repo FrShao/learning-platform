@@ -1,16 +1,34 @@
-/** Database client and migrations package (stub). Schema lands in Phase 1. */
+export { createDbClient, type Db, type DbClient } from './client.js';
+export { getDbHealth, pingDb, type DbHealth } from './health.js';
+export * from './schema.js';
+export { mapApiKey, mapMembership, mapOrganization, mapRefreshToken, mapUser } from './mappers.js';
 
-export interface DbHealth {
-  ok: boolean;
-  message: string;
-}
+export { findUserByEmail, findUserById, insertUser } from './repos/users.js';
 
-/**
- * Report whether a database URL is configured. Does not open a connection yet.
- */
-export function getDbHealth(databaseUrl: string | undefined): DbHealth {
-  if (!databaseUrl || databaseUrl.trim() === '') {
-    return { ok: false, message: 'DATABASE_URL is not set' };
-  }
-  return { ok: true, message: 'DATABASE_URL is configured (client not wired)' };
-}
+export {
+  addMembership,
+  countOwners,
+  findOrganizationById,
+  findOrganizationBySlug,
+  getMembership,
+  insertOrganization,
+  listMembers,
+  listMembershipsForUser,
+  removeMembership,
+  updateMembershipRole,
+} from './repos/organizations.js';
+
+export {
+  findApiKeyByHash,
+  findApiKeyById,
+  insertApiKey,
+  listApiKeysForOrg,
+  revokeApiKey,
+  touchApiKeyLastUsed,
+} from './repos/api-keys.js';
+
+export {
+  findValidRefreshToken,
+  insertRefreshToken,
+  revokeRefreshToken,
+} from './repos/refresh-tokens.js';

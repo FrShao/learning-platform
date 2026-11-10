@@ -3,16 +3,23 @@
 set -eu
 
 if [ "${SKIP_MIGRATE:-false}" != "true" ]; then
-  if command -v pnpm >/dev/null 2>&1 && [ -f package.json ]; then
-    echo "[entrypoint] running database migrations…"
-    pnpm --filter @lp/db migrate:deploy || {
-      echo "[entrypoint] migrate:deploy failed or package script missing; continuing only if ALLOW_MIGRATE_FAIL=true"
-      if [ "${ALLOW_MIGRATE_FAIL:-false}" != "true" ]; then
-        exit 1
-      fi
-    }
-  else
-    echo "[entrypoint] pnpm/@lp/db not available in image layout; skip migrate (set up during scaffold)"
+  migrated=false
+  if command -v pnpm >/dev/null 2>&1 && [ -f package.json ] && grep -q '"@lp/db"' package.json 2>/dev/null; then
+    if pnpm --filter @lp/db migrate:deploy; then
+      migrated=true
+    fi
+  fi
+  if [ "$migrated" = false ] && [ -f node_modules/@lp/db/dist/migrate-deploy.js ]; then
+    echo "[entrypoint] running database migrations via @lp/db…"
+    if node node_modules/@lp/db/dist/migrate-deploy.js; then
+      migrated=true
+    fi
+  fi
+  if [ "$migrated" = false ]; then
+    echo "[entrypoint] migrate:deploy failed or unavailable"
+    if [ "${ALLOW_MIGRATE_FAIL:-false}" != "true" ]; then
+      exit 1
+    fi
   fi
 fi
 
