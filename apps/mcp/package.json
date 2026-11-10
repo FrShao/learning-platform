@@ -1,0 +1,23 @@
+{
+  "name": "@lp/mcp",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@lp/config": "workspace:*",
+    "@lp/db": "workspace:*",
+    "@lp/domain": "workspace:*"
+  },
+  "devDependencies": {
+    "@lp/tsconfig": "workspace:*",
+    "@types/node": "^22.13.10",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2"
+  }
+}

@@ -1,0 +1,200 @@
+# Learning Platform — default Compose stack
+# Copy to repo root. Build context = monorepo root.
+# Profiles: (none) = postgres + api + web + mcp | assets = minio | test = ephemeral DB + migrate + integration
+
+name: learning-platform
+
+networks:
+  lp_net:
+    driver: bridge
+
+volumes:
+  lp_pgdata:
+    name: lp_pgdata
+  lp_minio:
+    name: lp_minio
+
+x-node-env: &node-env
+  NODE_ENV: ${NODE_ENV:-development}
+  LOG_LEVEL: ${LOG_LEVEL:-info}
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-lp}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-lp_dev_change_me}
+      POSTGRES_DB: ${POSTGRES_DB:-learning_platform}
+    ports:
+      - '${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - lp_pgdata:/var/lib/postgresql/data
+    networks: [lp_net]
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: runner
+    restart: unless-stopped
+    environment:
+      <<: *node-env
+      DATABASE_URL: ${DATABASE_URL:-postgresql://lp:lp_dev_change_me@postgres:5432/learning_platform?schema=public}
+      JWT_SECRET: ${JWT_SECRET:-dev-only-change-me-in-prod}
+      PORT: ${API_PORT:-3000}
+      S3_ENDPOINT: ${S3_ENDPOINT:-http://minio:9000}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-minioadmin}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-minioadmin}
+      S3_BUCKET: ${S3_BUCKET:-lp-assets}
+      S3_FORCE_PATH_STYLE: ${S3_FORCE_PATH_STYLE:-true}
+    ports:
+      - '${API_HOST_PORT:-3000}:3000'
+    networks: [lp_net]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:3000/health || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 40s
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      target: runner
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3000}
+    restart: unless-stopped
+    environment:
+      <<: *node-env
+      API_URL: ${API_URL:-http://api:3000}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3000}
+      PORT: ${WEB_PORT:-3001}
+    ports:
+      - '${WEB_HOST_PORT:-3001}:3001'
+    networks: [lp_net]
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:3001/ || exit 1']
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+
+  mcp:
+    build:
+      context: .
+      dockerfile: apps/mcp/Dockerfile
+      target: runner
+    restart: unless-stopped
+    environment:
+      <<: *node-env
+      DATABASE_URL: ${DATABASE_URL:-postgresql://lp:lp_dev_change_me@postgres:5432/learning_platform?schema=public}
+      MCP_HTTP_PORT: ${MCP_HTTP_PORT:-3100}
+      API_BASE_URL: ${API_BASE_URL:-http://api:3000}
+    ports:
+      - '${MCP_HOST_PORT:-3100}:3100'
+    networks: [lp_net]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:3100/health || exit 1']
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+
+  # Optional local S3 for Asset uploads. Activate: docker compose --profile assets up
+  minio:
+    image: minio/minio:latest
+    profiles: ['assets']
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:-minioadmin}
+    ports:
+      - '${MINIO_API_PORT:-9000}:9000'
+      - '${MINIO_CONSOLE_PORT:-9001}:9001'
+    volumes:
+      - lp_minio:/data
+    networks: [lp_net]
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -fsS http://127.0.0.1:9000/minio/health/live || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # --- profile: test — ephemeral Postgres, migrate, then integration suite ---
+  postgres-test:
+    image: postgres:16-alpine
+    profiles: ['test']
+    environment:
+      POSTGRES_USER: ${POSTGRES_TEST_USER:-lp_test}
+      POSTGRES_PASSWORD: ${POSTGRES_TEST_PASSWORD:-lp_test}
+      POSTGRES_DB: ${POSTGRES_TEST_DB:-lp_test}
+    tmpfs:
+      - /var/lib/postgresql/data
+    networks: [lp_net]
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB']
+      interval: 3s
+      timeout: 3s
+      retries: 15
+      start_period: 5s
+
+  api-test:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: runner
+    profiles: ['test']
+    environment:
+      NODE_ENV: test
+      DATABASE_URL: ${DATABASE_TEST_URL:-postgresql://lp_test:lp_test@postgres-test:5432/lp_test?schema=public}
+      JWT_SECRET: test-jwt-secret-not-for-prod
+      PORT: '3000'
+    networks: [lp_net]
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+    # One-shot: apply migrations, then exit 0
+    command: ['pnpm', '--filter', '@lp/db', 'migrate:deploy']
+    restart: 'no'
+
+  integration-tests:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: build
+    profiles: ['test']
+    working_dir: /app
+    environment:
+      NODE_ENV: test
+      DATABASE_URL: ${DATABASE_TEST_URL:-postgresql://lp_test:lp_test@postgres-test:5432/lp_test?schema=public}
+      JWT_SECRET: test-jwt-secret-not-for-prod
+      API_URL: http://127.0.0.1:3000
+    networks: [lp_net]
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      api-test:
+        condition: service_completed_successfully
+    command: ['pnpm', 'test:integration']
+    restart: 'no'
