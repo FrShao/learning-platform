@@ -28,6 +28,10 @@ export class CourseService {
     return this.repo.listByOrg(orgId);
   }
 
+  listPersonalCourses(ownerUserId: string): Promise<Course[]> {
+    return this.repo.listByOwnerUser(ownerUserId);
+  }
+
   async getCourse(courseId: string): Promise<Course> {
     const course = await this.repo.getById(courseId);
     if (!course) {
@@ -37,7 +41,8 @@ export class CourseService {
   }
 
   async createCourse(input: {
-    orgId: string;
+    orgId?: string | null;
+    ownerUserId?: string | null;
     slug: string;
     title: string;
     description?: string;
@@ -51,9 +56,19 @@ export class CourseService {
       throw new DomainError('validation', 'Title must be 1–200 characters');
     }
 
+    const orgId = input.orgId ?? null;
+    const ownerUserId = input.ownerUserId ?? null;
+    if ((orgId == null) === (ownerUserId == null)) {
+      throw new DomainError(
+        'validation',
+        'Course ownership requires exactly one of orgId or ownerUserId',
+      );
+    }
+
     try {
       const created = await this.repo.createCourse({
-        orgId: input.orgId,
+        orgId,
+        ownerUserId,
         slug,
         title: input.title.trim(),
         description: input.description ?? '',

@@ -20,7 +20,8 @@ export const courses = pgTable(
   'courses',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    orgId: uuid('org_id').notNull(),
+    orgId: uuid('org_id'),
+    ownerUserId: uuid('owner_user_id'),
     slug: text('slug').notNull(),
     title: text('title').notNull(),
     description: text('description').notNull().default(''),
@@ -34,8 +35,12 @@ export const courses = pgTable(
   (t) => [
     uniqueIndex('courses_org_slug_alive_uidx')
       .on(t.orgId, t.slug)
-      .where(sql`${t.deletedAt} is null`),
+      .where(sql`${t.deletedAt} is null and ${t.orgId} is not null`),
+    uniqueIndex('courses_owner_user_slug_alive_uidx')
+      .on(t.ownerUserId, t.slug)
+      .where(sql`${t.deletedAt} is null and ${t.ownerUserId} is not null`),
     index('courses_org_id_idx').on(t.orgId),
+    index('courses_owner_user_id_idx').on(t.ownerUserId),
   ],
 );
 

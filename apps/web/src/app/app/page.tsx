@@ -29,6 +29,7 @@ function OrgPickerInner() {
       router.replace(`/app/orgs/${last}`);
       return;
     }
+    // Do not auto-redirect when the user has no orgs — personal library is available.
     if (memberships.length === 1) {
       const only = memberships[0];
       if (only) router.replace(`/app/orgs/${only.orgId}`);
@@ -41,26 +42,40 @@ function OrgPickerInner() {
       <main className="app-main page">
         <div className="page-header">
           <div>
-            <h1>Your organizations</h1>
-            <p>Choose an organization to continue, or create a new one.</p>
+            <h1>Where to work</h1>
+            <p>Use your personal library without an org, or open an organization.</p>
           </div>
-          <Link className="btn btn-primary" href="/app/orgs/new">
-            Create organization
-          </Link>
+          <div className="cta-row">
+            <Link className="btn btn-secondary" href="/app/me">
+              Personal library
+            </Link>
+            <Link className="btn btn-primary" href="/app/orgs/new">
+              Create organization
+            </Link>
+          </div>
         </div>
-        {memberships.length === 0 ? (
-          <EmptyState
-            title="No organizations yet"
-            description="Create your first organization to start authoring or learning."
-            action={
-              <Link className="btn btn-primary" href="/app/orgs/new">
-                Create organization
-              </Link>
-            }
-          />
-        ) : (
-          <div className="card-list">
-            {memberships.map((m) => (
+        <div className="card-list">
+          <Link href="/app/me" className="list-row">
+            <div>
+              <strong>Personal library</strong>
+              <div className="meta-row">
+                <span>Courses and paths you own — no organization required</span>
+              </div>
+            </div>
+            <span className="muted">Open →</span>
+          </Link>
+          {memberships.length === 0 ? (
+            <EmptyState
+              title="No organizations yet"
+              description="Optional: create an organization to collaborate with a team."
+              action={
+                <Link className="btn btn-primary" href="/app/orgs/new">
+                  Create organization
+                </Link>
+              }
+            />
+          ) : (
+            memberships.map((m) => (
               <Link key={m.orgId} href={`/app/orgs/${m.orgId}`} className="list-row">
                 <div>
                   <strong>{m.org.name}</strong>
@@ -71,9 +86,9 @@ function OrgPickerInner() {
                 </div>
                 <span className="muted">Open →</span>
               </Link>
-            ))}
-          </div>
-        )}
+            ))
+          )}
+        </div>
       </main>
     </div>
   );

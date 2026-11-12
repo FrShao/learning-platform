@@ -30,7 +30,9 @@ import {
 } from '../schema/courses.js';
 
 export interface CreateCourseInput {
-  orgId: string;
+  /** Exactly one of orgId / ownerUserId. */
+  orgId?: string | null;
+  ownerUserId?: string | null;
   slug: string;
   title: string;
   description: string;
@@ -50,6 +52,15 @@ export class CourseRepository {
     return rows.map(mapCourse);
   }
 
+  async listByOwnerUser(ownerUserId: string): Promise<Course[]> {
+    const rows = await this.db
+      .select()
+      .from(courses)
+      .where(and(eq(courses.ownerUserId, ownerUserId), isNull(courses.deletedAt)))
+      .orderBy(desc(courses.updatedAt));
+    return rows.map(mapCourse);
+  }
+
   async getById(courseId: string): Promise<Course | null> {
     const rows = await this.db
       .select()
@@ -65,6 +76,15 @@ export class CourseRepository {
     branch: CourseBranch;
     workingTree: CourseWorkingTree;
   }> {
+    const orgId = input.orgId ?? null;
+    const ownerUserId = input.ownerUserId ?? null;
+    if ((orgId == null) === (ownerUserId == null)) {
+      throw new DomainError(
+        'validation',
+        'Course ownership requires exactly one of orgId or ownerUserId',
+      );
+    }
+
     const defaultBranch = input.defaultBranch ?? 'main';
     const now = new Date();
 
@@ -72,7 +92,8 @@ export class CourseRepository {
       const [courseRow] = await tx
         .insert(courses)
         .values({
-          orgId: input.orgId,
+          orgId,
+          ownerUserId,
           slug: input.slug,
           title: input.title,
           description: input.description,

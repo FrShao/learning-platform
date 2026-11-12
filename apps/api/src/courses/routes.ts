@@ -1,11 +1,33 @@
-import type { ContentBlock, TreePatch } from '@lp/domain';
+import { canAuthorOwnedResource, type ContentBlock, type Course, type TreePatch } from '@lp/domain';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 
+import { forbidden } from '../errors.js';
 import { sendDomainError, sendError } from '../lib/errors.js';
+import {
+  assertCanAuthorOwned,
+  requireUserSession,
+  resolveOrgRole,
+} from '../ownership-acl.js';
 
-import { assertCoursePublish, assertCourseWrite, requireAuth } from './auth-hook.js';
+import {
+  assertCoursePublish,
+  assertCourseWrite,
+  requireAuth,
+  type CourseAuthContext,
+} from './auth-hook.js';
 import type { CourseService } from './service.js';
+
+async function requireCourseAuthor(
+  app: FastifyInstance,
+  service: CourseService,
+  auth: CourseAuthContext,
+  courseId: string,
+): Promise<Course> {
+  const course = await service.getCourse(courseId);
+  await assertCanAuthorOwned(app.dbClient.db, course.owner, auth);
+  return course;
+}
 
 const contentBlockSchema: z.ZodType<ContentBlock> = z.lazy(() =>
   z.discriminatedUnion('type', [
@@ -110,6 +132,56 @@ export async function registerCourseRoutes(
   app: FastifyInstance,
   service: CourseService,
 ): Promise<void> {
+  app.get('/v1/me/courses', async (request, reply) => {
+    try {
+      const auth = requireAuth(request);
+      const userId = requireUserSession(auth);
+      const courses = await service.listPersonalCourses(userId);
+      return { courses };
+    } catch (err) {
+      if (handleForbidden(reply, err)) return;
+      if (sendDomainError(reply, err)) return;
+      throw err;
+    }
+  });
+
+  app.post<{ Body: unknown }>('/v1/me/courses', async (request, reply) => {
+    try {
+      const auth = requireAuth(request);
+      const userId = requireUserSession(auth);
+      const body = z
+        .object({
+          slug: z.string().min(1),
+          title: z.string().min(1),
+          description: z.string().optional(),
+        })
+        .parse(request.body);
+
+      const createInput: {
+        ownerUserId: string;
+        slug: string;
+        title: string;
+        createdBy: string;
+        description?: string;
+      } = {
+        ownerUserId: userId,
+        slug: body.slug,
+        title: body.title,
+        createdBy: userId,
+      };
+      if (body.description !== undefined) {
+        createInput.description = body.description;
+      }
+      const result = await service.createCourse(createInput);
+      return reply.status(201).send(result);
+    } catch (err) {
+      if (handleZod(reply, err)) return;
+      if (handleForbidden(reply, err)) return;
+      if (sendDomainError(reply, err)) return;
+      throw err;
+    }
+  });
+
   app.get<{ Params: { orgId: string } }>('/v1/orgs/:orgId/courses', async (request, reply) => {
     try {
       const auth = requireAuth(request);
@@ -117,9 +189,17 @@ export async function registerCourseRoutes(
         sendError(reply, 403, 'forbidden', 'Org mismatch');
         return;
       }
+      if (auth.actor.kind === 'user') {
+        const role = await resolveOrgRole(app.dbClient.db, request.params.orgId, auth.userId);
+        if (!role) {
+          sendError(reply, 403, 'forbidden', 'Not a member of this organization');
+          return;
+        }
+      }
       const courses = await service.listCourses(request.params.orgId);
       return { courses };
     } catch (err) {
+      if (handleForbidden(reply, err)) return;
       if (sendDomainError(reply, err)) return;
       throw err;
     }
@@ -134,6 +214,17 @@ export async function registerCourseRoutes(
         if (auth.orgId && auth.orgId !== request.params.orgId) {
           sendError(reply, 403, 'forbidden', 'Org mismatch');
           return;
+        }
+        if (auth.actor.kind === 'user') {
+          const role = await resolveOrgRole(app.dbClient.db, request.params.orgId, auth.userId);
+          if (
+            !canAuthorOwnedResource(
+              { kind: 'org', orgId: request.params.orgId },
+              { userId: auth.userId, orgRole: role },
+            )
+          ) {
+            throw forbidden('Author role required for this organization');
+          }
         }
         const body = z
           .object({
@@ -186,6 +277,7 @@ export async function registerCourseRoutes(
       try {
         const auth = requireAuth(request);
         assertCourseWrite(auth);
+        await requireCourseAuthor(app, service, auth, request.params.courseId);
         const body = z
           .object({
             title: z.string().min(1).optional(),
@@ -212,6 +304,7 @@ export async function registerCourseRoutes(
     try {
       const auth = requireAuth(request);
       assertCourseWrite(auth);
+      await requireCourseAuthor(app, service, auth, request.params.courseId);
       const course = await service.softDeleteCourse(request.params.courseId);
       return { course };
     } catch (err) {
@@ -241,6 +334,7 @@ export async function registerCourseRoutes(
       try {
         const auth = requireAuth(request);
         assertCourseWrite(auth);
+        await requireCourseAuthor(app, service, auth, request.params.courseId);
         const body = z
           .object({
             name: z.string().min(1),
@@ -283,6 +377,7 @@ export async function registerCourseRoutes(
       try {
         const auth = requireAuth(request);
         assertCourseWrite(auth);
+        await requireCourseAuthor(app, service, auth, request.params.courseId);
         await service.deleteBranch(
           request.params.courseId,
           decodeURIComponent(request.params.name),
@@ -320,6 +415,7 @@ export async function registerCourseRoutes(
       try {
         const auth = requireAuth(request);
         assertCourseWrite(auth);
+        await requireCourseAuthor(app, service, auth, request.params.courseId);
         const body = treeSchema.parse(request.body);
         const workingTree = await service.putWorkingTree(
           request.params.courseId,
@@ -343,6 +439,7 @@ export async function registerCourseRoutes(
       try {
         const auth = requireAuth(request);
         assertCourseWrite(auth);
+        await requireCourseAuthor(app, service, auth, request.params.courseId);
         const body = z
           .object({
             ops: z.array(treePatchOpSchema).min(1),
@@ -389,6 +486,7 @@ export async function registerCourseRoutes(
       try {
         const auth = requireAuth(request);
         assertCourseWrite(auth);
+        await requireCourseAuthor(app, service, auth, request.params.courseId);
         const body = z.object({ message: z.string().min(1).max(2000) }).parse(request.body);
         const result = await service.commit(
           request.params.courseId,
@@ -458,6 +556,7 @@ export async function registerCourseRoutes(
         const auth = requireAuth(request);
         assertCoursePublish(auth);
         assertCourseWrite(auth);
+        await requireCourseAuthor(app, service, auth, request.params.courseId);
         const body = z
           .object({
             commit_id: z.string().uuid().optional(),

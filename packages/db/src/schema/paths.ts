@@ -10,7 +10,8 @@ export const learningPaths = pgTable(
   'learning_paths',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    orgId: uuid('org_id').notNull(),
+    orgId: uuid('org_id'),
+    ownerUserId: uuid('owner_user_id'),
     slug: text('slug').notNull(),
     title: text('title').notNull(),
     description: text('description').notNull().default(''),
@@ -22,8 +23,12 @@ export const learningPaths = pgTable(
   (t) => [
     uniqueIndex('learning_paths_org_slug_alive_uidx')
       .on(t.orgId, t.slug)
-      .where(sql`${t.deletedAt} is null`),
+      .where(sql`${t.deletedAt} is null and ${t.orgId} is not null`),
+    uniqueIndex('learning_paths_owner_user_slug_alive_uidx')
+      .on(t.ownerUserId, t.slug)
+      .where(sql`${t.deletedAt} is null and ${t.ownerUserId} is not null`),
     index('learning_paths_org_id_idx').on(t.orgId),
+    index('learning_paths_owner_user_id_idx').on(t.ownerUserId),
   ],
 );
 
@@ -56,7 +61,7 @@ export const pathEnrollments = pgTable(
       .notNull()
       .references(() => learningPaths.id),
     userId: uuid('user_id').notNull(),
-    orgId: uuid('org_id').notNull(),
+    orgId: uuid('org_id'),
     enrolledAt: timestamp('enrolled_at', { withTimezone: true }).notNull().defaultNow(),
     revokedAt: timestamp('revoked_at', { withTimezone: true }),
   },

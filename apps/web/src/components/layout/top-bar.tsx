@@ -11,9 +11,11 @@ import { roleLabel } from '@/lib/roles';
 export function TopBar({
   orgId,
   orgName,
+  personal,
 }: {
   orgId?: string | undefined;
   orgName?: string | undefined;
+  personal?: boolean | undefined;
 }) {
   const { user, memberships, signOut } = useAuth();
   const router = useRouter();
@@ -21,14 +23,15 @@ export function TopBar({
   const [orgOpen, setOrgOpen] = useState(false);
 
   const currentRole = memberships.find((m) => m.orgId === orgId)?.role;
+  const showSwitcher = Boolean(orgId) || personal;
 
   return (
     <header className="top-bar">
       <div className="top-bar-left">
-        <Link href={orgId ? `/app/orgs/${orgId}` : '/app'} className="brand-mark">
+        <Link href={orgId ? `/app/orgs/${orgId}` : personal ? '/app/me' : '/app'} className="brand-mark">
           Learning<span>Platform</span>
         </Link>
-        {orgId ? (
+        {showSwitcher ? (
           <div className="org-switcher">
             <button
               type="button"
@@ -36,12 +39,24 @@ export function TopBar({
               aria-expanded={orgOpen}
               onClick={() => setOrgOpen((v) => !v)}
             >
-              <span className="org-switcher-label">{orgName ?? 'Organization'}</span>
-              {currentRole ? <span className="role-chip">{roleLabel(currentRole)}</span> : null}
+              <span className="org-switcher-label">
+                {personal ? 'Personal library' : (orgName ?? 'Organization')}
+              </span>
+              {!personal && currentRole ? (
+                <span className="role-chip">{roleLabel(currentRole)}</span>
+              ) : null}
               <span aria-hidden>▾</span>
             </button>
             {orgOpen ? (
               <div className="dropdown-panel">
+                <Link
+                  href="/app/me"
+                  className={personal ? 'dropdown-item active' : 'dropdown-item'}
+                  onClick={() => setOrgOpen(false)}
+                >
+                  <strong>Personal library</strong>
+                  <span>Your courses & paths</span>
+                </Link>
                 {memberships.map((m) => (
                   <Link
                     key={m.orgId}

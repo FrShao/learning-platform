@@ -15,6 +15,7 @@ import type {
   SectionId,
   UserId,
 } from '../ids.js';
+import type { ResourceOwner } from '../ownership.js';
 
 export type {
   ApiKeyScope,
@@ -34,6 +35,8 @@ export type {
   UserId,
 };
 
+export type { ResourceOwner };
+
 /** Actor resolved by auth middleware (JWT user or API key). */
 export type Actor =
   | { kind: 'user'; userId: UserId }
@@ -41,7 +44,12 @@ export type Actor =
 
 export interface Course {
   id: CourseId;
-  orgId: OrgId;
+  /** Exclusive owner: personal user or organization. */
+  owner: ResourceOwner;
+  /** Convenience mirror of owner when kind === 'org'; else null. */
+  orgId: OrgId | null;
+  /** Convenience mirror of owner when kind === 'user'; else null. */
+  ownerUserId: UserId | null;
   slug: string;
   title: string;
   description: string;

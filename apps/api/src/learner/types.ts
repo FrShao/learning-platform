@@ -138,7 +138,8 @@ export interface Enrollment {
   id: EnrollmentId;
   courseId: CourseId;
   userId: UserId;
-  orgId: OrgId;
+  /** Denormalized from course; null for personal courses. */
+  orgId: OrgId | null;
   enrolledAt: Date;
   revokedAt: Date | null;
 }
@@ -168,7 +169,7 @@ export interface FormAttempt {
 
 export interface PublishedCourseView {
   courseId: CourseId;
-  orgId: OrgId;
+  orgId: OrgId | null;
   title: string;
   slug: string;
   publishedCommitId: CourseCommitId;
@@ -177,7 +178,8 @@ export interface PublishedCourseView {
 
 export interface CourseSummary {
   id: CourseId;
-  orgId: OrgId;
+  orgId: OrgId | null;
+  ownerUserId?: UserId | null;
   slug: string;
   title: string;
   publishedCommitId: CourseCommitId | null;

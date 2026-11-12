@@ -1,4 +1,4 @@
-/** Canonical Path types — org-owned learning journeys as strict trees of lessons. */
+/** Canonical Path types — user- or org-owned learning journeys as strict trees of lessons. */
 
 import type {
   CourseId,
@@ -9,8 +9,11 @@ import type {
   SectionId,
   UserId,
 } from '../ids.js';
+import type { ResourceOwner } from '../ownership.js';
 
 export type { CourseId, OrgId, PathEnrollmentId, PathId, PathNodeId, SectionId, UserId };
+
+export type { ResourceOwner };
 
 /**
  * Lesson reference: a course section (v1: section = lesson unit) in a published course.
@@ -21,10 +24,15 @@ export interface LessonRef {
   sectionId: SectionId;
 }
 
-/** Org-owned learning journey metadata. Tree lives in PathNode rows. */
+/** User- or org-owned learning journey metadata. Tree lives in PathNode rows. */
 export interface Path {
   id: PathId;
-  orgId: OrgId;
+  /** Exclusive owner: personal user or organization. */
+  owner: ResourceOwner;
+  /** Convenience mirror of owner when kind === 'org'; else null. */
+  orgId: OrgId | null;
+  /** Convenience mirror of owner when kind === 'user'; else null. */
+  ownerUserId: UserId | null;
   slug: string;
   title: string;
   description: string;
@@ -52,7 +60,8 @@ export interface PathEnrollment {
   id: PathEnrollmentId;
   pathId: PathId;
   userId: UserId;
-  orgId: OrgId;
+  /** Denormalized from path; null for personal paths. */
+  orgId: OrgId | null;
   enrolledAt: Date;
   revokedAt: Date | null;
 }

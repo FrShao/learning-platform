@@ -236,7 +236,7 @@ function serializeEnrollment(enrollment: {
   id: string;
   courseId: string;
   userId: string;
-  orgId: string;
+  orgId: string | null;
   enrolledAt: Date;
   revokedAt: Date | null;
 }) {

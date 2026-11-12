@@ -62,7 +62,9 @@ export class LearnerService {
       throw new LearnerError('conflict', 'Course has no published version');
     }
 
-    await this.requireMembership(course.orgId, actor.userId);
+    if (course.orgId) {
+      await this.requireMembership(course.orgId, actor.userId);
+    }
 
     const existing = await this.store.findActiveEnrollment(courseId, actor.userId);
     if (existing) {
@@ -96,7 +98,9 @@ export class LearnerService {
     if (!course || course.deletedAt !== null) {
       throw new LearnerError('not_found', 'Course not found');
     }
-    await this.requireMembership(course.orgId, actor.userId);
+    if (course.orgId) {
+      await this.requireMembership(course.orgId, actor.userId);
+    }
 
     const published = await this.courses.getPublished(courseId);
     if (!published) {
@@ -253,7 +257,10 @@ export class LearnerService {
     }
   }
 
-  private async orgSettings(orgId: string) {
+  private async orgSettings(orgId: string | null) {
+    if (!orgId) {
+      return DEFAULT_ORG_SETTINGS;
+    }
     try {
       return await this.memberships.getOrgSettings(orgId);
     } catch {

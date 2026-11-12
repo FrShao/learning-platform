@@ -6,10 +6,12 @@ import type {
   CourseTree,
   CourseWorkingTree,
 } from '@lp/domain';
+import { resourceOwnerFromColumns } from '@lp/domain';
 
 export interface CourseRow {
   id: string;
-  orgId: string;
+  orgId: string | null;
+  ownerUserId: string | null;
   slug: string;
   title: string;
   description: string;
@@ -58,9 +60,12 @@ export interface WorkingTreeRow {
 }
 
 export function mapCourse(row: CourseRow): Course {
+  const owner = resourceOwnerFromColumns(row.orgId, row.ownerUserId);
   return {
     id: row.id,
-    orgId: row.orgId,
+    owner,
+    orgId: owner.kind === 'org' ? owner.orgId : null,
+    ownerUserId: owner.kind === 'user' ? owner.userId : null,
     slug: row.slug,
     title: row.title,
     description: row.description,

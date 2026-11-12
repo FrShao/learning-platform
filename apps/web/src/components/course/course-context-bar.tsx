@@ -16,15 +16,18 @@ export function CourseContextBar({
   branches,
   baseCommitId,
   dirty,
+  basePath,
   onCommitted,
   onPublished,
 }: {
-  orgId: string;
+  orgId?: string | null;
   courseId: string;
   branchName: string;
   branches: CourseBranchDto[];
   baseCommitId: string | null;
   dirty: boolean;
+  /** Authoring base path, e.g. `/app/orgs/:orgId/courses/:courseId` or `/app/me/courses/:courseId`. */
+  basePath?: string;
   onCommitted?: (commit: CourseCommitDto) => void;
   onPublished?: () => void;
 }) {
@@ -35,7 +38,9 @@ export function CourseContextBar({
   const [error, setError] = useState<string | null>(null);
   const [lastCommitId, setLastCommitId] = useState<string | null>(null);
 
-  const base = `/app/orgs/${orgId}/courses/${courseId}`;
+  const base =
+    basePath ?? (orgId ? `/app/orgs/${orgId}/courses/${courseId}` : `/app/me/courses/${courseId}`);
+  const showExtraNav = Boolean(orgId);
 
   async function handleCommit() {
     setBusy(true);
@@ -97,12 +102,14 @@ export function CourseContextBar({
           </span>
         </div>
         <div className="course-context-actions">
-          <Link
-            className="btn btn-secondary"
-            href={`${base}/diff/branches/${encodeURIComponent(branchName)}`}
-          >
-            Diff
-          </Link>
+          {showExtraNav ? (
+            <Link
+              className="btn btn-secondary"
+              href={`${base}/diff/branches/${encodeURIComponent(branchName)}`}
+            >
+              Diff
+            </Link>
+          ) : null}
           <Button variant="secondary" onClick={() => setCommitOpen(true)} disabled={!dirty}>
             Commit…
           </Button>
@@ -110,15 +117,19 @@ export function CourseContextBar({
           <details className="overflow-menu">
             <summary className="btn btn-ghost">⋯</summary>
             <div className="dropdown-panel">
-              <Link
-                className="dropdown-item"
-                href={`${base}/history?branch=${encodeURIComponent(branchName)}`}
-              >
-                History
-              </Link>
-              <Link className="dropdown-item" href={`${base}/branches`}>
-                Branches
-              </Link>
+              {showExtraNav ? (
+                <>
+                  <Link
+                    className="dropdown-item"
+                    href={`${base}/history?branch=${encodeURIComponent(branchName)}`}
+                  >
+                    History
+                  </Link>
+                  <Link className="dropdown-item" href={`${base}/branches`}>
+                    Branches
+                  </Link>
+                </>
+              ) : null}
               <Link className="dropdown-item" href={base}>
                 Overview
               </Link>

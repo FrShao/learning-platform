@@ -1,11 +1,28 @@
+import { canAuthorOwnedResource, type Path } from '@lp/domain';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 
 import { assertCourseWrite, requireAuth, type CourseAuthContext } from '../courses/auth-hook.js';
-import { unauthorized } from '../errors.js';
+import { forbidden, unauthorized } from '../errors.js';
 import { sendDomainError, sendError } from '../lib/errors.js';
+import {
+  assertCanAuthorOwned,
+  requireUserSession,
+  resolveOrgRole,
+} from '../ownership-acl.js';
 
 import type { PathService } from './service.js';
+
+async function requirePathAuthor(
+  app: FastifyInstance,
+  service: PathService,
+  auth: CourseAuthContext,
+  pathId: string,
+): Promise<Path> {
+  const path = await service.getPath(pathId);
+  await assertCanAuthorOwned(app.dbClient.db, path.owner, auth);
+  return path;
+}
 
 const nodeBodySchema = z.object({
   id: z.string().min(1).optional(),
@@ -32,20 +49,12 @@ function requireJwtUser(auth: CourseAuthContext): string {
   return auth.userId;
 }
 
-function serializePath(path: {
-  id: string;
-  orgId: string;
-  slug: string;
-  title: string;
-  description: string;
-  createdBy: string;
-  createdAt: Date;
-  updatedAt: Date;
-  deletedAt: Date | null;
-}) {
+function serializePath(path: Path) {
   return {
     id: path.id,
+    owner: path.owner,
     orgId: path.orgId,
+    ownerUserId: path.ownerUserId,
     slug: path.slug,
     title: path.title,
     description: path.description,
@@ -80,7 +89,7 @@ function serializeEnrollment(enrollment: {
   id: string;
   pathId: string;
   userId: string;
-  orgId: string;
+  orgId: string | null;
   enrolledAt: Date;
   revokedAt: Date | null;
 }) {
@@ -117,6 +126,57 @@ export async function registerPathRoutes(
   app: FastifyInstance,
   service: PathService,
 ): Promise<void> {
+  app.get('/v1/me/paths', async (request, reply) => {
+    try {
+      const auth = requireAuth(request);
+      const userId = requireUserSession(auth);
+      const paths = await service.listPersonalPaths(userId);
+      return { paths: paths.map(serializePath) };
+    } catch (err) {
+      if (handleForbidden(reply, err)) return;
+      if (sendDomainError(reply, err)) return;
+      throw err;
+    }
+  });
+
+  app.post<{ Body: unknown }>('/v1/me/paths', async (request, reply) => {
+    try {
+      const auth = requireAuth(request);
+      const userId = requireUserSession(auth);
+      const body = z
+        .object({
+          slug: z.string().min(1),
+          title: z.string().min(1),
+          description: z.string().optional(),
+        })
+        .parse(request.body);
+
+      const createInput: {
+        ownerUserId: string;
+        slug: string;
+        title: string;
+        createdBy: string;
+        description?: string;
+      } = {
+        ownerUserId: userId,
+        slug: body.slug,
+        title: body.title,
+        createdBy: userId,
+      };
+      if (body.description !== undefined) {
+        createInput.description = body.description;
+      }
+
+      const path = await service.createPath(createInput);
+      return reply.status(201).send({ path: serializePath(path) });
+    } catch (err) {
+      if (handleZod(reply, err)) return;
+      if (handleForbidden(reply, err)) return;
+      if (sendDomainError(reply, err)) return;
+      throw err;
+    }
+  });
+
   app.get<{ Params: { orgId: string } }>('/v1/orgs/:orgId/paths', async (request, reply) => {
     try {
       const auth = requireAuth(request);
@@ -124,9 +184,17 @@ export async function registerPathRoutes(
         sendError(reply, 403, 'forbidden', 'Org mismatch');
         return;
       }
+      if (auth.actor.kind === 'user') {
+        const role = await resolveOrgRole(app.dbClient.db, request.params.orgId, auth.userId);
+        if (!role) {
+          sendError(reply, 403, 'forbidden', 'Not a member of this organization');
+          return;
+        }
+      }
       const paths = await service.listPaths(request.params.orgId);
       return { paths: paths.map(serializePath) };
     } catch (err) {
+      if (handleForbidden(reply, err)) return;
       if (sendDomainError(reply, err)) return;
       throw err;
     }
@@ -141,6 +209,17 @@ export async function registerPathRoutes(
         if (auth.orgId && auth.orgId !== request.params.orgId) {
           sendError(reply, 403, 'forbidden', 'Org mismatch');
           return;
+        }
+        if (auth.actor.kind === 'user') {
+          const role = await resolveOrgRole(app.dbClient.db, request.params.orgId, auth.userId);
+          if (
+            !canAuthorOwnedResource(
+              { kind: 'org', orgId: request.params.orgId },
+              { userId: auth.userId, orgRole: role },
+            )
+          ) {
+            throw forbidden('Author role required for this organization');
+          }
         }
         const body = z
           .object({
@@ -169,6 +248,8 @@ export async function registerPathRoutes(
         const path = await service.createPath(createInput);
         return reply.status(201).send({ path: serializePath(path) });
       } catch (err) {
+        if (handleZod(reply, err)) return;
+        if (handleForbidden(reply, err)) return;
         if (sendDomainError(reply, err)) return;
         throw err;
       }
@@ -192,6 +273,7 @@ export async function registerPathRoutes(
       try {
         const auth = requireAuth(request);
         assertCourseWrite(auth);
+        await requirePathAuthor(app, service, auth, request.params.pathId);
         const body = z
           .object({
             slug: z.string().min(1).optional(),
@@ -206,6 +288,8 @@ export async function registerPathRoutes(
         const path = await service.updatePath(request.params.pathId, patch);
         return { path: serializePath(path) };
       } catch (err) {
+        if (handleZod(reply, err)) return;
+        if (handleForbidden(reply, err)) return;
         if (sendDomainError(reply, err)) return;
         throw err;
       }
@@ -216,9 +300,11 @@ export async function registerPathRoutes(
     try {
       const auth = requireAuth(request);
       assertCourseWrite(auth);
+      await requirePathAuthor(app, service, auth, request.params.pathId);
       const path = await service.softDeletePath(request.params.pathId);
       return { path: serializePath(path) };
     } catch (err) {
+      if (handleForbidden(reply, err)) return;
       if (sendDomainError(reply, err)) return;
       throw err;
     }
@@ -241,6 +327,7 @@ export async function registerPathRoutes(
       try {
         const auth = requireAuth(request);
         assertCourseWrite(auth);
+        await requirePathAuthor(app, service, auth, request.params.pathId);
         const body = z.object({ nodes: z.array(treeNodeSchema) }).parse(request.body);
         const nodes = await service.putTree(
           request.params.pathId,
@@ -265,6 +352,8 @@ export async function registerPathRoutes(
         );
         return { nodes: nodes.map(serializeNode) };
       } catch (err) {
+        if (handleZod(reply, err)) return;
+        if (handleForbidden(reply, err)) return;
         if (sendDomainError(reply, err)) return;
         throw err;
       }
@@ -277,6 +366,7 @@ export async function registerPathRoutes(
       try {
         const auth = requireAuth(request);
         assertCourseWrite(auth);
+        await requirePathAuthor(app, service, auth, request.params.pathId);
         const body = nodeBodySchema.parse(request.body);
         const addInput: {
           id?: string;
@@ -296,6 +386,8 @@ export async function registerPathRoutes(
         const nodes = await service.addNode(request.params.pathId, addInput);
         return reply.status(201).send({ nodes: nodes.map(serializeNode) });
       } catch (err) {
+        if (handleZod(reply, err)) return;
+        if (handleForbidden(reply, err)) return;
         if (sendDomainError(reply, err)) return;
         throw err;
       }
@@ -309,6 +401,7 @@ export async function registerPathRoutes(
       try {
         const auth = requireAuth(request);
         assertCourseWrite(auth);
+        await requirePathAuthor(app, service, auth, request.params.pathId);
         const body = z
           .object({
             parentId: z.string().uuid().nullable(),
@@ -322,6 +415,8 @@ export async function registerPathRoutes(
         );
         return { nodes: nodes.map(serializeNode) };
       } catch (err) {
+        if (handleZod(reply, err)) return;
+        if (handleForbidden(reply, err)) return;
         if (sendDomainError(reply, err)) return;
         throw err;
       }
@@ -334,6 +429,7 @@ export async function registerPathRoutes(
       try {
         const auth = requireAuth(request);
         assertCourseWrite(auth);
+        await requirePathAuthor(app, service, auth, request.params.pathId);
         const body = z
           .object({
             parentId: z.string().uuid().nullable(),
@@ -361,6 +457,8 @@ export async function registerPathRoutes(
         );
         return { nodes: nodes.map(serializeNode) };
       } catch (err) {
+        if (handleZod(reply, err)) return;
+        if (handleForbidden(reply, err)) return;
         if (sendDomainError(reply, err)) return;
         throw err;
       }
@@ -373,9 +471,11 @@ export async function registerPathRoutes(
       try {
         const auth = requireAuth(request);
         assertCourseWrite(auth);
+        await requirePathAuthor(app, service, auth, request.params.pathId);
         const nodes = await service.deleteNode(request.params.pathId, request.params.nodeId);
         return { nodes: nodes.map(serializeNode) };
       } catch (err) {
+        if (handleForbidden(reply, err)) return;
         if (sendDomainError(reply, err)) return;
         throw err;
       }
@@ -440,4 +540,25 @@ export async function registerPathRoutes(
       }
     },
   );
+}
+
+function handleZod(reply: import('fastify').FastifyReply, err: unknown): boolean {
+  if (err instanceof z.ZodError) {
+    sendError(reply, 400, 'validation', 'Request validation failed', err.flatten());
+    return true;
+  }
+  return false;
+}
+
+function handleForbidden(reply: import('fastify').FastifyReply, err: unknown): boolean {
+  if (
+    typeof err === 'object' &&
+    err !== null &&
+    'statusCode' in err &&
+    (err as { statusCode?: number }).statusCode === 403
+  ) {
+    sendError(reply, 403, 'forbidden', err instanceof Error ? err.message : 'Forbidden');
+    return true;
+  }
+  return false;
 }
