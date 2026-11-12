@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { AssetPreview } from '@/components/course/asset-preview';
 import { FormAttemptPanel } from '@/components/learner/form-attempt-panel';
 import { ProgressMeter } from '@/components/learner/progress-meter';
 import { EmptyState, ErrorState, LoadingBlock } from '@/components/states/async-state';
@@ -20,6 +21,14 @@ import type {
 import { rememberEnrollment } from '@/lib/enrollment-cache';
 import { errorMessage } from '@/lib/format';
 import { describeGraphBlock, resolveFormSpec } from '@/lib/learner/form-blocks';
+
+function LearnerAssetImage({ assetId, alt }: { assetId: string; alt?: string }) {
+  return alt !== undefined ? (
+    <AssetPreview assetId={assetId} alt={alt} className="asset-preview" />
+  ) : (
+    <AssetPreview assetId={assetId} className="asset-preview" />
+  );
+}
 
 export default function SectionReaderPage() {
   const { orgId, courseId, enrollmentId, sectionId } = useParams<{
@@ -235,11 +244,12 @@ export default function SectionReaderPage() {
                       {b.type === 'text' ? <div className="prose-block">{b.markdown}</div> : null}
                       {b.type === 'image' ? (
                         <figure className="image-block">
-                          <div className="image-placeholder">
-                            Image · <code>{b.assetId}</code>
-                          </div>
+                          {b.alt !== undefined ? (
+                            <LearnerAssetImage assetId={b.assetId} alt={b.alt} />
+                          ) : (
+                            <LearnerAssetImage assetId={b.assetId} />
+                          )}
                           {b.caption ? <figcaption>{b.caption}</figcaption> : null}
-                          {b.alt ? <p className="muted">{b.alt}</p> : null}
                         </figure>
                       ) : null}
                       {b.type === 'graph' ? (

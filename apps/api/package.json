@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@fastify/cors": "^11.4.1",
+    "@fastify/multipart": "^10.1.8",
     "@lp/config": "workspace:*",
     "@lp/db": "workspace:*",
     "@lp/domain": "workspace:*",

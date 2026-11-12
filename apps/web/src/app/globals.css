@@ -638,6 +638,32 @@ h3,
   background: var(--accent-soft);
 }
 
+.asset-preview {
+  display: block;
+  max-width: 100%;
+  max-height: 280px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  object-fit: contain;
+  background: var(--foam);
+}
+
+.block-inspector .field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.checkbox-field {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.checkbox-field input {
+  width: auto;
+}
+
 .reader-layout {
   display: grid;
   grid-template-columns: 220px minmax(0, 760px);

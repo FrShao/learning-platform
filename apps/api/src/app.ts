@@ -1,4 +1,5 @@
 import cors from '@fastify/cors';
+import multipart from '@fastify/multipart';
 import type { AppEnv } from '@lp/config';
 import {
   createDbClient,
@@ -13,6 +14,7 @@ import {
 import { hashApiKey } from '@lp/domain';
 import Fastify, { type FastifyInstance, type FastifyReply } from 'fastify';
 
+import { AssetService, LocalBlobStorage, registerAssetRoutes } from './assets/index.js';
 import type { AuthContext } from './auth/context.js';
 import { verifyAccessToken } from './auth/tokens.js';
 import { registerCourseRoutes } from './courses/routes.js';
@@ -36,6 +38,7 @@ declare module 'fastify' {
     orgService: OrgService;
     courseService: CourseService;
     pathService: PathService;
+    assetService: AssetService;
     jwtSecret: string;
   }
   interface FastifyRequest {
@@ -74,6 +77,21 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
     methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key', 'Accept'],
   });
+  await app.register(multipart, {
+    limits: {
+      fileSize: options.env.maxAssetBytes,
+      files: 1,
+    },
+  });
+
+  const publicApiBaseUrl =
+    options.env.publicApiBaseUrl?.replace(/\/$/, '') || `http://127.0.0.1:${options.env.port}/v1`;
+  const assetService = new AssetService({
+    db: client.db,
+    storage: new LocalBlobStorage(options.env.assetStorageDir),
+    maxAssetBytes: options.env.maxAssetBytes,
+    publicApiBaseUrl,
+  });
 
   app.decorate('dbClient', client);
   app.decorate('jwtSecret', options.jwtSecret);
@@ -81,6 +99,7 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
   app.decorate('orgService', new OrgService(client));
   app.decorate('courseService', new CourseService(client.db));
   app.decorate('pathService', new PathService(client.db));
+  app.decorate('assetService', assetService);
   app.decorateRequest('auth', null);
 
   app.addHook('onRequest', async (request) => {
@@ -188,6 +207,7 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
   await registerOrgRoutes(app);
   await registerCourseRoutes(app, app.courseService);
   await registerPathRoutes(app, app.pathService);
+  await registerAssetRoutes(app, app.assetService);
   await registerLearnerRoutes(app, client);
 
   const closeDb = options.closeDbOnClose !== false && !options.db;

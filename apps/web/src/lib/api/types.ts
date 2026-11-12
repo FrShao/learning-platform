@@ -159,25 +159,42 @@ export interface CourseSectionDto {
   blocks: CourseBlockDto[];
 }
 
+export type ChartKind = 'line' | 'bar' | 'pie' | 'scatter';
+
+export type GraphSpecDto =
+  | { kind: 'chart'; chart: ChartKind; data: unknown; options?: unknown }
+  | { kind: 'diagram'; format: 'mermaid'; source: string };
+
 export type CourseBlockDto =
   | { id: string; type: 'text'; markdown: string }
   | { id: string; type: 'image'; assetId: string; alt?: string; caption?: string }
   | {
       id: string;
       type: 'graph';
+      /** Canonical nested graph spec (authoring + domain). */
+      spec?: GraphSpecDto;
+      /** Legacy flat fields tolerated by published readers. */
       kind?: 'chart' | 'mermaid' | 'diagram';
       source?: string;
-      spec?: unknown;
     }
   | {
       id: string;
       type: 'form';
       form?: FormSpecDto;
+      /** Legacy flat fields tolerated by published readers. */
       title?: string;
       passRule?: 'all_correct' | 'min_score' | PassRuleDto;
       minScore?: number;
       questions?: QuestionDto[];
     };
+
+export interface AssetDto {
+  id: string;
+  url: string;
+  mime?: string;
+  size?: number;
+  originalFilename?: string | null;
+}
 
 export interface CourseTreeDto {
   sections: CourseSectionDto[];
