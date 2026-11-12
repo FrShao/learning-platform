@@ -70,6 +70,12 @@ export default function OrgHomePage() {
             <p>Author working trees, commit, and publish.</p>
           </Link>
         ) : null}
+        {author ? (
+          <Link className="hub-tile" href={`/app/orgs/${orgId}/paths`}>
+            <h3>Paths</h3>
+            <p>Build ordered lesson trees across published courses.</p>
+          </Link>
+        ) : null}
         <Link className="hub-tile" href={`/app/orgs/${orgId}/learn`}>
           <h3>Learn</h3>
           <p>

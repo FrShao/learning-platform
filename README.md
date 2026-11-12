@@ -1,6 +1,6 @@
 # Learning Platform
 
-TypeScript monorepo for a multi-tenant learning system: organizations own courses with **git-like versioning** (working tree, commits, publish), authored via web UI or MCP, with learner progress against the published commit only.
+TypeScript monorepo for a multi-tenant learning system: organizations own courses with **git-like versioning** (working tree, commits, publish), plus **Paths** (ordered lesson trees over published course sections), authored via web UI or MCP, with learner progress against the published commit / path unlock rules.
 
 Design detail lives under [`docs/`](./docs/) — start with [engineering standards](./docs/engineering-standards.md) and [Docker & Compose](./docs/docker-and-compose.md). Product/API plan and domain models are summarized in [`docs/README.md`](./docs/README.md).
 
@@ -8,12 +8,12 @@ Design detail lives under [`docs/`](./docs/) — start with [engineering standar
 
 ```text
 apps/
-  api/          REST /v1 (auth, courses, learner)
-  web/          Author + learner UI
+  api/          REST /v1 (auth, courses, paths, learner)
+  web/          Author + learner UI (courses, paths, learn)
   mcp/          MCP adapter over the same domain services
 packages/
-  domain/       Canonical types, pure helpers
-  db/           Schema, migrations, repositories (stub)
+  domain/       Canonical types, pure helpers (incl. path tree ops)
+  db/           Schema, migrations, repositories
   config/       Shared env parsing
   tsconfig/     Shared TypeScript bases
   eslint-config Shared ESLint flat config

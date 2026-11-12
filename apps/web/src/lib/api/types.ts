@@ -183,3 +183,50 @@ export interface FormAttemptResultDto {
   passed: boolean | null;
   grades: unknown[];
 }
+
+export interface PathDto {
+  id: string;
+  orgId: OrgId;
+  slug: string;
+  title: string;
+  description: string;
+  createdBy?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  deletedAt?: string | null;
+}
+
+export interface PathNodeDto {
+  id: string;
+  pathId: string;
+  parentId: string | null;
+  title: string | null;
+  order: number;
+  courseId: string;
+  sectionId: string;
+}
+
+export interface PathEnrollmentDto {
+  id: string;
+  pathId: string;
+  userId: UserId;
+  orgId: OrgId;
+  enrolledAt: string;
+  revokedAt: string | null;
+}
+
+export interface PathProgressDto {
+  enrollmentId: string;
+  completedNodeIds: string[];
+  currentNodeId: string | null;
+  percent: number;
+  updatedAt: string;
+}
+
+export interface PathProgressResponse {
+  path: PathDto;
+  enrollment: PathEnrollmentDto;
+  progress: PathProgressDto;
+  nodes: PathNodeDto[];
+  unlockedNodeIds: string[];
+}
