@@ -11,7 +11,7 @@ import {
   type Db,
   type DbClient,
 } from '@lp/db';
-import { hashApiKey } from '@lp/domain';
+import { hashApiKey } from '@lp/domain/api-key-crypto';
 import Fastify, { type FastifyInstance, type FastifyReply } from 'fastify';
 
 import { AssetService, LocalBlobStorage, registerAssetRoutes } from './assets/index.js';

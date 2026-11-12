@@ -11,7 +11,8 @@ import {
   listMembershipsForUser,
   revokeRefreshToken,
 } from '@lp/db';
-import { hashPassword, normalizeEmail, toPublicUser, verifyPassword, type User } from '@lp/domain';
+import { normalizeEmail, toPublicUser, type User } from '@lp/domain';
+import { hashPassword, verifyPassword } from '@lp/domain/password';
 
 import { createRefreshTokenSecret, hashRefreshToken, signAccessToken } from '../auth/tokens.js';
 import { conflict, unauthorized, validation } from '../errors.js';

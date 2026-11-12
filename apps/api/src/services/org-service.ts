@@ -18,13 +18,10 @@ import {
   updateMembershipRole,
 } from '@lp/db';
 import {
-  apiKeyDisplayPrefix,
   API_KEY_SCOPES,
   canAssignRole,
   canChangeSoleOwner,
   canManageMemberRole,
-  generateApiKeySecret,
-  hashApiKey,
   isValidOrgSlug,
   normalizeEmail,
   normalizeOrgSlug,
@@ -37,6 +34,11 @@ import {
   type OrgRole,
   type User,
 } from '@lp/domain';
+import {
+  apiKeyDisplayPrefix,
+  generateApiKeySecret,
+  hashApiKey,
+} from '@lp/domain/api-key-crypto';
 
 import { conflict, forbidden, notFound, validation } from '../errors.js';
 
