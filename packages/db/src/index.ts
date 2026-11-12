@@ -3,6 +3,7 @@ export { getDbHealth, pingDb, type DbHealth } from './health.js';
 export * from './schema/index.js';
 export { mapApiKey, mapMembership, mapOrganization, mapRefreshToken, mapUser } from './mappers.js';
 export { mapBranch, mapCommit, mapCourse, mapSnapshot, mapWorkingTree } from './mappers/courses.js';
+export { mapPath, mapPathEnrollment, mapPathNode, mapPathProgress } from './mappers/paths.js';
 
 export { findUserByEmail, findUserById, insertUser } from './repos/users.js';
 
@@ -39,3 +40,5 @@ export {
   ensurePostgresExtensions,
   type CreateCourseInput,
 } from './repositories/courses.js';
+
+export { PathRepository, type CreatePathInput } from './repositories/paths.js';

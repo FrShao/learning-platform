@@ -15,6 +15,10 @@ import type {
   MeResponse,
   OrgMemberDto,
   OrganizationDto,
+  PathDto,
+  PathNodeDto,
+  PathProgressDto,
+  PathProgressResponse,
   WorkingTreeDto,
 } from './types';
 
@@ -256,5 +260,92 @@ export const api = {
   },
   getAsset(assetId: string) {
     return apiRequest<{ id: string; url: string }>(`/assets/${assetId}`);
+  },
+  async listPaths(orgId: string) {
+    const data = await apiRequest<{ paths: PathDto[] }>(`/orgs/${orgId}/paths`);
+    return data.paths;
+  },
+  async createPath(orgId: string, input: { slug: string; title: string; description: string }) {
+    const data = await apiRequest<{ path: PathDto }>(`/orgs/${orgId}/paths`, {
+      method: 'POST',
+      body: input,
+    });
+    return data.path;
+  },
+  async getPath(pathId: string) {
+    const data = await apiRequest<{ path: PathDto }>(`/paths/${pathId}`);
+    return data.path;
+  },
+  async updatePath(
+    pathId: string,
+    input: Partial<{ slug: string; title: string; description: string }>,
+  ) {
+    const data = await apiRequest<{ path: PathDto }>(`/paths/${pathId}`, {
+      method: 'PATCH',
+      body: input,
+    });
+    return data.path;
+  },
+  async deletePath(pathId: string) {
+    const data = await apiRequest<{ path: PathDto }>(`/paths/${pathId}`, { method: 'DELETE' });
+    return data.path;
+  },
+  async getPathTree(pathId: string) {
+    return apiRequest<{ path: PathDto; nodes: PathNodeDto[] }>(`/paths/${pathId}/tree`);
+  },
+  async putPathTree(
+    pathId: string,
+    nodes: Array<{
+      id?: string;
+      parentId: string | null;
+      title?: string | null;
+      order: number;
+      courseId: string;
+      sectionId: string;
+    }>,
+  ) {
+    const data = await apiRequest<{ nodes: PathNodeDto[] }>(`/paths/${pathId}/tree`, {
+      method: 'PUT',
+      body: { nodes },
+    });
+    return data.nodes;
+  },
+  async addPathNode(
+    pathId: string,
+    input: {
+      parentId: string | null;
+      title?: string | null;
+      order?: number;
+      courseId: string;
+      sectionId: string;
+    },
+  ) {
+    const data = await apiRequest<{ nodes: PathNodeDto[] }>(`/paths/${pathId}/nodes`, {
+      method: 'POST',
+      body: input,
+    });
+    return data.nodes;
+  },
+  async deletePathNode(pathId: string, nodeId: string) {
+    const data = await apiRequest<{ nodes: PathNodeDto[] }>(`/paths/${pathId}/nodes/${nodeId}`, {
+      method: 'DELETE',
+    });
+    return data.nodes;
+  },
+  async enrollPath(pathId: string) {
+    return apiRequest<{
+      enrollment: { id: string };
+      progress: PathProgressDto;
+      nodes: PathNodeDto[];
+    }>(`/paths/${pathId}/enroll`, { method: 'POST' });
+  },
+  getPathProgress(enrollmentId: string) {
+    return apiRequest<PathProgressResponse>(`/path-enrollments/${enrollmentId}/progress`);
+  },
+  completePathNode(enrollmentId: string, nodeId: string) {
+    return apiRequest<{ progress: PathProgressDto; unlockedNodeIds: string[] }>(
+      `/path-enrollments/${enrollmentId}/nodes/${nodeId}/complete`,
+      { method: 'POST' },
+    );
   },
 };

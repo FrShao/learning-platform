@@ -16,3 +16,6 @@ export type SectionId = string;
 export type ContentBlockId = string;
 export type QuestionId = string;
 export type OptionId = string;
+export type PathId = string;
+export type PathNodeId = string;
+export type PathEnrollmentId = string;

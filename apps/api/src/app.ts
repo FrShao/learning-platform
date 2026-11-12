@@ -18,6 +18,8 @@ import { registerCourseRoutes } from './courses/routes.js';
 import { CourseService } from './courses/service.js';
 import { ApiError, unauthorized } from './errors.js';
 import { registerLearnerRoutes } from './learner/register.js';
+import { registerPathRoutes } from './paths/routes.js';
+import { PathService } from './paths/service.js';
 import { registerAuthRoutes } from './routes/auth.js';
 import { registerMeRoutes } from './routes/me.js';
 import { registerOrgRoutes } from './routes/orgs.js';
@@ -32,6 +34,7 @@ declare module 'fastify' {
     authService: AuthService;
     orgService: OrgService;
     courseService: CourseService;
+    pathService: PathService;
     jwtSecret: string;
   }
   interface FastifyRequest {
@@ -69,6 +72,7 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
   app.decorate('authService', new AuthService(client, options.env, options.jwtSecret));
   app.decorate('orgService', new OrgService(client));
   app.decorate('courseService', new CourseService(client.db));
+  app.decorate('pathService', new PathService(client.db));
   app.decorateRequest('auth', null);
 
   app.addHook('onRequest', async (request) => {
@@ -175,6 +179,7 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
   await registerMeRoutes(app);
   await registerOrgRoutes(app);
   await registerCourseRoutes(app, app.courseService);
+  await registerPathRoutes(app, app.pathService);
   await registerLearnerRoutes(app, client);
 
   const closeDb = options.closeDbOnClose !== false && !options.db;
