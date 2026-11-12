@@ -813,6 +813,137 @@ h3,
   line-height: 1.45;
 }
 
+.progress-meter {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.progress-meter-track {
+  height: 0.55rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--line) 70%, white);
+  overflow: hidden;
+}
+
+.progress-meter-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent) 0%, var(--accent-deep) 100%);
+  transition: width 280ms ease;
+}
+
+.progress-meter-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--accent-deep);
+  min-width: 2.75rem;
+  text-align: right;
+}
+
+.learner-block {
+  background: white;
+}
+
+.prose-block {
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+
+.image-block {
+  margin: 0;
+}
+
+.image-placeholder {
+  padding: 1.25rem;
+  border-radius: 10px;
+  border: 1px dashed var(--line);
+  background: var(--foam);
+  color: var(--ink-soft);
+}
+
+.form-attempt-header strong {
+  font-size: 1.05rem;
+}
+
+.question-field {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.85rem;
+  margin: 0;
+  background: var(--foam);
+}
+
+.question-field legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0 0.25rem;
+  font-weight: 600;
+}
+
+.question-field input[type='text'],
+.question-field input[type='number'],
+.question-field textarea {
+  width: 100%;
+  margin-top: 0.55rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
+  background: white;
+}
+
+.choice-row {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.55rem;
+}
+
+.choice {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: white;
+}
+
+.attempt-feedback {
+  margin-top: 0.85rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: white;
+}
+
+.attempt-feedback.ok {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  background: var(--accent-soft);
+}
+
+.attempt-feedback.warn {
+  border-color: color-mix(in srgb, var(--warn) 40%, var(--line));
+  background: #fff6e8;
+}
+
+.form-success {
+  margin: 0.75rem 0 0;
+  color: var(--accent-deep);
+  font-weight: 600;
+}
+
+.banner-warn {
+  border-color: color-mix(in srgb, var(--warn) 35%, var(--line));
+  background: #fff8ec;
+}
+
+.path-node-row {
+  align-items: center;
+}
+
 @media (max-width: 1023px) {
   .app-body {
     grid-template-columns: 1fr;

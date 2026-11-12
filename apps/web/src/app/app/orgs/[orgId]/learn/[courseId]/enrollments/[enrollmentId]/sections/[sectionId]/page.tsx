@@ -1,20 +1,25 @@
 'use client';
 
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { FormAttemptPanel } from '@/components/learner/form-attempt-panel';
+import { ProgressMeter } from '@/components/learner/progress-meter';
 import { EmptyState, ErrorState, LoadingBlock } from '@/components/states/async-state';
 import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api/client';
 import type {
+  AnswerValueDto,
   CourseDto,
   CourseSectionDto,
   CourseTreeDto,
   FormAttemptResultDto,
   LearnerProgressDto,
 } from '@/lib/api/types';
+import { rememberEnrollment } from '@/lib/enrollment-cache';
 import { errorMessage } from '@/lib/format';
+import { describeGraphBlock, resolveFormSpec } from '@/lib/learner/form-blocks';
 
 export default function SectionReaderPage() {
   const { orgId, courseId, enrollmentId, sectionId } = useParams<{
@@ -23,34 +28,40 @@ export default function SectionReaderPage() {
     enrollmentId: string;
     sectionId: string;
   }>();
+  const router = useRouter();
 
   const [course, setCourse] = useState<CourseDto | null>(null);
   const [tree, setTree] = useState<CourseTreeDto | null>(null);
   const [progress, setProgress] = useState<LearnerProgressDto | null>(null);
+  const [orgSequential, setOrgSequential] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [attemptResults, setAttemptResults] = useState<Record<string, FormAttemptResultDto>>({});
   const [actionError, setActionError] = useState<string | null>(null);
+  const [completeMessage, setCompleteMessage] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const [c, published, p] = await Promise.all([
+      const [c, published, p, org] = await Promise.all([
         api.getCourse(courseId),
         api.getPublished(courseId),
         api.getProgress(enrollmentId),
+        api.getOrg(orgId).catch(() => null),
       ]);
       setCourse(c);
       setTree(published);
       setProgress(p);
+      rememberEnrollment(orgId, enrollmentId, courseId);
+      setOrgSequential(org?.settings?.enforceSequentialProgress ?? true);
     } catch (err) {
       setError(errorMessage(err, 'Could not load section'));
     } finally {
       setLoading(false);
     }
-  }, [courseId, enrollmentId]);
+  }, [courseId, enrollmentId, orgId]);
 
   useEffect(() => {
     void load();
@@ -62,23 +73,31 @@ export default function SectionReaderPage() {
   );
 
   const section: CourseSectionDto | null = sections.find((s) => s.id === sectionId) ?? null;
+  const sectionIndex = section ? sections.findIndex((s) => s.id === section.id) : -1;
+  const nextSection = sectionIndex >= 0 ? (sections[sectionIndex + 1] ?? null) : null;
 
   const completed = new Set(progress?.completedSectionIds ?? []);
-  const sequential = true; // default; org settings may refine later
 
   function isLocked(s: CourseSectionDto): boolean {
-    if (!sequential || !progress) return false;
+    if (!orgSequential || !progress) return false;
     const prior = sections.filter((x) => x.order < s.order);
     return prior.some((x) => !completed.has(x.id));
   }
 
   const locked = section ? isLocked(section) : false;
+  const formsPassed = useMemo(() => {
+    if (!section) return true;
+    const formBlocks = section.blocks.filter((b) => b.type === 'form');
+    if (formBlocks.length === 0) return true;
+    return formBlocks.every((b) => attemptResults[b.id]?.passed === true);
+  }, [section, attemptResults]);
 
-  async function submitForm(blockId: string) {
+  async function submitForm(blockId: string, answers: AnswerValueDto[]) {
     setBusy(true);
     setActionError(null);
+    setCompleteMessage(null);
     try {
-      const result = await api.submitFormAttempt(enrollmentId, blockId, {});
+      const result = await api.submitFormAttempt(enrollmentId, blockId, answers);
       setAttemptResults((prev) => ({ ...prev, [blockId]: result }));
     } catch (err) {
       setActionError(errorMessage(err));
@@ -90,9 +109,20 @@ export default function SectionReaderPage() {
   async function markComplete() {
     setBusy(true);
     setActionError(null);
+    setCompleteMessage(null);
     try {
       const p = await api.completeSection(enrollmentId, sectionId);
       setProgress(p);
+      setCompleteMessage(
+        p.percent === 100
+          ? 'Course complete — nice work.'
+          : nextSection
+            ? 'Section complete. Continue to the next lesson when ready.'
+            : 'Section complete.',
+      );
+      if (nextSection && p.completedSectionIds.includes(sectionId)) {
+        // stay on page so learner sees feedback; next CTA below
+      }
     } catch (err) {
       setActionError(errorMessage(err));
     } finally {
@@ -109,25 +139,33 @@ export default function SectionReaderPage() {
     progress?.publishedCommitId &&
     course.publishedCommitId !== progress.publishedCommitId;
 
+  const sectionDone = completed.has(sectionId);
+
   return (
     <div className="page">
       <div className="page-header">
         <div>
-          <h1>{section.title}</h1>
-          <p>
-            {course?.title ?? 'Course'} · Progress {progress?.percent ?? 0}%
+          <p className="muted">
+            <Link href={`/app/orgs/${orgId}/learn/${courseId}`}>{course?.title ?? 'Course'}</Link>
+            {' / '}
+            Lesson {sectionIndex + 1}
           </p>
+          <h1>{section.title}</h1>
+          <div style={{ marginTop: '0.65rem', maxWidth: 320 }}>
+            <ProgressMeter percent={progress?.percent ?? 0} />
+          </div>
         </div>
         <Link className="btn btn-ghost" href={`/app/orgs/${orgId}/learn/${courseId}`}>
-          Course detail
+          Course outline
         </Link>
       </div>
 
       {versionMismatch ? (
-        <div className="panel">
+        <div className="panel banner-warn">
           <strong>Course updated</strong>
           <p className="muted" style={{ margin: '0.35rem 0 0' }}>
-            Your progress is for an earlier published version.
+            Your progress is for an earlier published version. You can keep working on that
+            snapshot.
           </p>
         </div>
       ) : null}
@@ -169,15 +207,19 @@ export default function SectionReaderPage() {
           {locked ? (
             <EmptyState
               title="Section locked"
-              description="Finish earlier sections first (sequential progress is on)."
+              description={
+                orgSequential
+                  ? 'Finish earlier sections first — sequential progress is required for this organization.'
+                  : 'This section is locked.'
+              }
               action={(() => {
-                const firstIncomplete = sections.find((s) => !completed.has(s.id));
+                const firstIncomplete = sections.find((s) => !completed.has(s.id) && !isLocked(s));
                 return firstIncomplete ? (
                   <Link
                     className="btn btn-secondary"
                     href={`/app/orgs/${orgId}/learn/${courseId}/enrollments/${enrollmentId}/sections/${firstIncomplete.id}`}
                   >
-                    Go to next incomplete
+                    Go to next available
                   </Link>
                 ) : null;
               })()}
@@ -189,47 +231,27 @@ export default function SectionReaderPage() {
               ) : (
                 <div className="stack">
                   {section.blocks.map((b) => (
-                    <div key={b.id} className="block-card" style={{ background: 'var(--foam)' }}>
-                      <div className="meta-row">
-                        <span className="badge">{b.type}</span>
-                      </div>
-                      {b.type === 'text' ? (
-                        <div style={{ whiteSpace: 'pre-wrap', marginTop: '0.5rem' }}>
-                          {b.markdown}
-                        </div>
-                      ) : null}
+                    <div key={b.id} className="block-card learner-block">
+                      {b.type === 'text' ? <div className="prose-block">{b.markdown}</div> : null}
                       {b.type === 'image' ? (
-                        <p style={{ marginTop: '0.5rem' }}>
-                          Image asset <code>{b.assetId}</code>
-                          {b.caption ? ` — ${b.caption}` : ''}
-                        </p>
+                        <figure className="image-block">
+                          <div className="image-placeholder">
+                            Image · <code>{b.assetId}</code>
+                          </div>
+                          {b.caption ? <figcaption>{b.caption}</figcaption> : null}
+                          {b.alt ? <p className="muted">{b.alt}</p> : null}
+                        </figure>
                       ) : null}
                       {b.type === 'graph' ? (
-                        <pre className="code-pre" style={{ marginTop: '0.5rem' }}>
-                          {b.source}
-                        </pre>
+                        <pre className="code-pre">{describeGraphBlock(b)}</pre>
                       ) : null}
                       {b.type === 'form' ? (
-                        <div className="stack" style={{ marginTop: '0.5rem' }}>
-                          <strong>{b.title}</strong>
-                          <p className="muted" style={{ margin: 0 }}>
-                            Pass rule: {b.passRule}. Full question UI lands in a later slice; submit
-                            sends an empty answers shell for wiring.
-                          </p>
-                          <Button
-                            variant="secondary"
-                            disabled={busy}
-                            onClick={() => void submitForm(b.id)}
-                          >
-                            Submit attempt
-                          </Button>
-                          {attemptResults[b.id] ? (
-                            <p>
-                              Result: passed={String(attemptResults[b.id]?.passed)} score=
-                              {String(attemptResults[b.id]?.score)}
-                            </p>
-                          ) : null}
-                        </div>
+                        <FormAttemptPanel
+                          form={resolveFormSpec(b)}
+                          busy={busy}
+                          result={attemptResults[b.id] ?? null}
+                          onSubmit={(answers) => submitForm(b.id, answers)}
+                        />
                       ) : null}
                     </div>
                   ))}
@@ -237,14 +259,38 @@ export default function SectionReaderPage() {
               )}
 
               {actionError ? <p className="form-error">{actionError}</p> : null}
+              {completeMessage ? <p className="form-success">{completeMessage}</p> : null}
 
               <div className="sticky-actions">
                 <Button
                   onClick={() => void markComplete()}
-                  disabled={busy || completed.has(sectionId)}
+                  disabled={busy || sectionDone || (!formsPassed && !sectionDone)}
                 >
-                  {completed.has(sectionId) ? 'Completed' : busy ? 'Saving…' : 'Mark complete'}
+                  {sectionDone
+                    ? 'Completed'
+                    : busy
+                      ? 'Saving…'
+                      : formsPassed
+                        ? 'Mark complete'
+                        : 'Pass all forms to continue'}
                 </Button>
+                {sectionDone && nextSection ? (
+                  <Button
+                    variant="secondary"
+                    onClick={() =>
+                      router.push(
+                        `/app/orgs/${orgId}/learn/${courseId}/enrollments/${enrollmentId}/sections/${nextSection.id}`,
+                      )
+                    }
+                  >
+                    Next: {nextSection.title}
+                  </Button>
+                ) : null}
+                {sectionDone && !nextSection ? (
+                  <Link className="btn btn-secondary" href={`/app/orgs/${orgId}/learn/${courseId}`}>
+                    Back to course
+                  </Link>
+                ) : null}
               </div>
             </>
           )}

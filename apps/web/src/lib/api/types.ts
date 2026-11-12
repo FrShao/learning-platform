@@ -123,6 +123,34 @@ export interface CourseCommitDto {
   createdAt: string;
 }
 
+export type PassRuleDto = { mode: 'all_correct' } | { mode: 'min_score'; min: number };
+
+export type QuestionDto =
+  | { id: string; type: 'short_text'; prompt: string; expected?: string; caseSensitive?: boolean }
+  | { id: string; type: 'long_text'; prompt: string; rubric?: string }
+  | {
+      id: string;
+      type: 'single_select';
+      prompt: string;
+      options: Array<{ id: string; label: string }>;
+      correctOptionId: string;
+    }
+  | {
+      id: string;
+      type: 'multi_select';
+      prompt: string;
+      options: Array<{ id: string; label: string }>;
+      correctOptionIds: string[];
+    }
+  | { id: string; type: 'boolean'; prompt: string; correct: boolean }
+  | { id: string; type: 'number'; prompt: string; correct: number; tolerance?: number };
+
+export interface FormSpecDto {
+  title?: string | undefined;
+  questions: QuestionDto[];
+  passRule?: PassRuleDto | undefined;
+}
+
 export interface CourseSectionDto {
   id: string;
   slug: string;
@@ -134,14 +162,21 @@ export interface CourseSectionDto {
 export type CourseBlockDto =
   | { id: string; type: 'text'; markdown: string }
   | { id: string; type: 'image'; assetId: string; alt?: string; caption?: string }
-  | { id: string; type: 'graph'; kind: 'chart' | 'mermaid'; source: string }
+  | {
+      id: string;
+      type: 'graph';
+      kind?: 'chart' | 'mermaid' | 'diagram';
+      source?: string;
+      spec?: unknown;
+    }
   | {
       id: string;
       type: 'form';
-      title: string;
-      passRule: 'all_correct' | 'min_score';
+      form?: FormSpecDto;
+      title?: string;
+      passRule?: 'all_correct' | 'min_score' | PassRuleDto;
       minScore?: number;
-      questions: unknown[];
+      questions?: QuestionDto[];
     };
 
 export interface CourseTreeDto {
@@ -167,6 +202,7 @@ export interface EnrollmentDto {
   userId: UserId;
   orgId: OrgId;
   createdAt?: string;
+  enrolledAt?: string;
 }
 
 export interface LearnerProgressDto {
@@ -176,12 +212,31 @@ export interface LearnerProgressDto {
   currentSectionId: string | null;
   completedSectionIds: string[];
   publishedCommitId: string;
+  updatedAt?: string;
 }
+
+export type QuestionGradeStatus = 'correct' | 'incorrect' | 'pending' | 'ungraded';
+
+export interface QuestionGradeDto {
+  questionId: string;
+  status: QuestionGradeStatus;
+  points?: number;
+}
+
+export type AnswerValueDto =
+  | { questionId: string; type: 'short_text'; value: string }
+  | { questionId: string; type: 'long_text'; value: string }
+  | { questionId: string; type: 'single_select'; optionId: string }
+  | { questionId: string; type: 'multi_select'; optionIds: string[] }
+  | { questionId: string; type: 'boolean'; value: boolean }
+  | { questionId: string; type: 'number'; value: number };
 
 export interface FormAttemptResultDto {
   score: number | null;
   passed: boolean | null;
-  grades: unknown[];
+  grades: QuestionGradeDto[];
+  id?: string | undefined;
+  formBlockId?: string | undefined;
 }
 
 export interface PathDto {

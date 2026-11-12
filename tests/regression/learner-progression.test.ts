@@ -26,7 +26,7 @@ describe('learner progression regression', () => {
     const { enrollment } = await service.enroll(actor(), COURSE_ID);
     await service.completeSection(actor(), enrollment.id, SEC_INTRO);
     await service.submitFormAttempt(actor(), enrollment.id, FORM_QUIZ, correctQuizAnswers());
-    const progress = await service.completeSection(actor(), enrollment.id, SEC_QUIZ);
+    const { progress } = await service.completeSection(actor(), enrollment.id, SEC_QUIZ);
 
     expect(progress.completedSectionIds).toEqual([SEC_INTRO, SEC_QUIZ]);
     expect(progress.percent).toBe(67);
