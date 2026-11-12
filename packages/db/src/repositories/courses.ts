@@ -2,7 +2,6 @@ import {
   DomainError,
   cloneCourseTree,
   emptyCourseTree,
-  hashCourseTree,
   validateCourseTree,
   type Course,
   type CourseBranch,
@@ -11,6 +10,7 @@ import {
   type CourseTree,
   type CourseWorkingTree,
 } from '@lp/domain';
+import { hashCourseTree } from '@lp/domain/course-hash';
 import { and, desc, eq, isNull, sql } from 'drizzle-orm';
 
 import type { Db } from '../client.js';

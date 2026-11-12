@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
+import { hashCourseTree } from '../../packages/domain/src/course/content-hash.js';
 import {
   applyTreePatch,
   diffCourseTrees,
   emptyCourseTree,
-  hashCourseTree,
 } from '../../packages/domain/src/course/index.js';
 
 /**

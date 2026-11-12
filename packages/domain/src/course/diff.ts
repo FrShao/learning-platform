@@ -1,4 +1,4 @@
-import { canonicalizeTreeJson } from './content-hash.js';
+import { canonicalizeTreeJson } from './canonicalize.js';
 import type { ContentBlock, CourseTree, Section, TreeDiff, TreeDiffEntry } from './types.js';
 
 /**

@@ -58,14 +58,11 @@ export {
   roleHasCapability,
 } from './roles.js';
 
-export { hashPassword, verifyPassword } from './password.js';
-
-export {
-  apiKeyDisplayPrefix,
-  generateApiKeySecret,
-  hashApiKey,
-  verifyApiKey,
-} from './api-key-crypto.js';
+// Node-only crypto (argon2 / node:crypto) lives on subpaths so browser bundles
+// can import `@lp/domain` without pulling native modules:
+//   import { hashPassword } from '@lp/domain/password'
+//   import { hashApiKey } from '@lp/domain/api-key-crypto'
+//   import { hashCourseTree } from '@lp/domain/course-hash'
 
 export type {
   BlockBase,
@@ -139,7 +136,6 @@ export {
   cloneCourseTree,
   diffCourseTrees,
   emptyCourseTree,
-  hashCourseTree,
   isValidBranchName,
   isValidCourseSlug,
   normalizeCourseSlug,

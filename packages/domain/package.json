@@ -9,6 +9,18 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./password": {
+      "types": "./dist/password.d.ts",
+      "import": "./dist/password.js"
+    },
+    "./api-key-crypto": {
+      "types": "./dist/api-key-crypto.d.ts",
+      "import": "./dist/api-key-crypto.js"
+    },
+    "./course-hash": {
+      "types": "./dist/course/content-hash.d.ts",
+      "import": "./dist/course/content-hash.js"
     }
   },
   "scripts": {
