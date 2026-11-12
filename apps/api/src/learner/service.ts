@@ -186,7 +186,7 @@ export class LearnerService {
     actor: LearnerActor,
     enrollmentId: EnrollmentId,
     sectionId: SectionId,
-  ): Promise<LearnerProgress> {
+  ): Promise<{ progress: LearnerProgress; enrollment: Enrollment }> {
     const { enrollment, progress } = await this.requireOwnedEnrollment(actor, enrollmentId);
     const settings = await this.orgSettings(enrollment.orgId);
 
@@ -224,7 +224,7 @@ export class LearnerService {
     }
 
     if (progress.completedSectionIds.includes(sectionId)) {
-      return progress;
+      return { progress, enrollment };
     }
 
     const attempts = await this.store.listFormAttempts(enrollmentId);
@@ -243,7 +243,7 @@ export class LearnerService {
       currentSectionId: nextSectionId(published.tree, completedSectionIds),
       updatedAt: this.clock(),
     };
-    return this.store.saveProgress(updated);
+    return { progress: await this.store.saveProgress(updated), enrollment };
   }
 
   private async requireMembership(orgId: string, userId: string): Promise<void> {

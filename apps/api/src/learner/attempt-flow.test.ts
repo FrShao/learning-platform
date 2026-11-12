@@ -80,9 +80,9 @@ describe('progression and form attempt flows', () => {
     const { enrollment } = await service.enroll(actor(), COURSE_ID);
 
     const afterIntro = await service.completeSection(actor(), enrollment.id, SEC_INTRO);
-    expect(afterIntro.completedSectionIds).toEqual([SEC_INTRO]);
-    expect(afterIntro.percent).toBe(33);
-    expect(afterIntro.currentSectionId).toBe(SEC_QUIZ);
+    expect(afterIntro.progress.completedSectionIds).toEqual([SEC_INTRO]);
+    expect(afterIntro.progress.percent).toBe(33);
+    expect(afterIntro.progress.currentSectionId).toBe(SEC_QUIZ);
 
     await expect(service.completeSection(actor(), enrollment.id, SEC_QUIZ)).rejects.toMatchObject({
       code: 'conflict',
@@ -109,9 +109,9 @@ describe('progression and form attempt flows', () => {
     expect(passing.passed).toBe(true);
 
     const afterQuiz = await service.completeSection(actor(), enrollment.id, SEC_QUIZ);
-    expect(afterQuiz.completedSectionIds).toEqual([SEC_INTRO, SEC_QUIZ]);
-    expect(afterQuiz.percent).toBe(67);
-    expect(afterQuiz.currentSectionId).toBe(SEC_FINAL);
+    expect(afterQuiz.progress.completedSectionIds).toEqual([SEC_INTRO, SEC_QUIZ]);
+    expect(afterQuiz.progress.percent).toBe(67);
+    expect(afterQuiz.progress.currentSectionId).toBe(SEC_FINAL);
   });
 
   it('blocks attempts and completion on locked later sections', async () => {
@@ -187,7 +187,24 @@ describe('progression and form attempt flows', () => {
     const { enrollment } = await service.enroll(actor(), COURSE_ID);
     const first = await service.completeSection(actor(), enrollment.id, SEC_INTRO);
     const second = await service.completeSection(actor(), enrollment.id, SEC_INTRO);
-    expect(second.completedSectionIds).toEqual(first.completedSectionIds);
-    expect(second.percent).toBe(first.percent);
+    expect(second.progress.completedSectionIds).toEqual(first.progress.completedSectionIds);
+    expect(second.progress.percent).toBe(first.progress.percent);
+  });
+
+  it('rejects unknown answer question ids via domain grading validation', async () => {
+    const ports = createFixturePorts({
+      settings: {
+        enforceSequentialProgress: false,
+        republishProgressPolicy: 'keep',
+      },
+    });
+    const service = buildService(ports);
+    const { enrollment } = await service.enroll(actor(), COURSE_ID);
+
+    await expect(
+      service.submitFormAttempt(actor(), enrollment.id, FORM_QUIZ, [
+        { questionId: 'not_a_question', type: 'boolean', value: true },
+      ]),
+    ).rejects.toMatchObject({ code: 'validation' });
   });
 });

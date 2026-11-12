@@ -2,7 +2,7 @@
  * Learner enrollment, published read, progress, and form attempts.
  *
  * Owns apps/api/src/learner only. Auth and course versioning are injected via
- * ports. Form graders are vendored stubs until @lp/domain exporters land.
+ * ports. Form grading delegates to `@lp/domain` graders.
  */
 
 export { LearnerError, toErrorBody } from './errors.js';

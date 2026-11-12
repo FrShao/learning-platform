@@ -232,26 +232,70 @@ export const api = {
   publish(courseId: string, input: { commit_id: string }) {
     return apiRequest<CourseDto>(`/courses/${courseId}/publish`, { method: 'POST', body: input });
   },
-  getPublished(courseId: string) {
-    return apiRequest<CourseTreeDto>(`/courses/${courseId}/published`);
+  async getPublished(courseId: string) {
+    const data = await apiRequest<
+      CourseTreeDto & { tree?: CourseTreeDto; sections?: CourseTreeDto['sections'] }
+    >(`/courses/${courseId}/published`);
+    if (data.tree?.sections) return data.tree;
+    if (Array.isArray(data.sections)) return { sections: data.sections };
+    return data;
   },
-  enroll(courseId: string) {
-    return apiRequest<EnrollmentDto>(`/courses/${courseId}/enroll`, { method: 'POST' });
+  async enroll(courseId: string) {
+    const data = await apiRequest<{
+      enrollment?: EnrollmentDto;
+      progress?: LearnerProgressDto;
+      id?: string;
+      courseId?: string;
+    }>(`/courses/${courseId}/enroll`, { method: 'POST' });
+    const enrollment = data.enrollment ?? (data as EnrollmentDto);
+    return {
+      enrollment,
+      progress: data.progress ?? null,
+    };
   },
-  getProgress(enrollmentId: string) {
-    return apiRequest<LearnerProgressDto>(`/enrollments/${enrollmentId}/progress`);
+  async getProgress(enrollmentId: string) {
+    const data = await apiRequest<
+      LearnerProgressDto & {
+        progress?: LearnerProgressDto;
+        enrollment?: EnrollmentDto;
+      }
+    >(`/enrollments/${enrollmentId}/progress`);
+    const progress = data.progress ?? data;
+    return {
+      ...progress,
+      courseId: progress.courseId ?? data.enrollment?.courseId ?? '',
+      enrollmentId: progress.enrollmentId ?? enrollmentId,
+    } satisfies LearnerProgressDto;
   },
-  completeSection(enrollmentId: string, sectionId: string) {
-    return apiRequest<LearnerProgressDto>(
+  async completeSection(enrollmentId: string, sectionId: string) {
+    const data = await apiRequest<LearnerProgressDto & { progress?: LearnerProgressDto }>(
       `/enrollments/${enrollmentId}/sections/${sectionId}/complete`,
       { method: 'POST' },
     );
+    const progress = data.progress ?? data;
+    return {
+      ...progress,
+      enrollmentId: progress.enrollmentId ?? enrollmentId,
+    } satisfies LearnerProgressDto;
   },
-  submitFormAttempt(enrollmentId: string, blockId: string, answers: unknown) {
-    return apiRequest<FormAttemptResultDto>(
-      `/enrollments/${enrollmentId}/forms/${blockId}/attempt`,
-      { method: 'POST', body: { answers } },
-    );
+  async submitFormAttempt(enrollmentId: string, blockId: string, answers: unknown) {
+    const data = await apiRequest<
+      FormAttemptResultDto & {
+        attempt?: FormAttemptResultDto & { grades?: FormAttemptResultDto['grades'] };
+      }
+    >(`/enrollments/${enrollmentId}/forms/${blockId}/attempt`, {
+      method: 'POST',
+      body: { answers },
+    });
+    const attempt = data.attempt ?? data;
+    const result: FormAttemptResultDto = {
+      score: attempt.score ?? null,
+      passed: attempt.passed ?? null,
+      grades: Array.isArray(attempt.grades) ? attempt.grades : [],
+      formBlockId: attempt.formBlockId ?? blockId,
+    };
+    if (attempt.id) result.id = attempt.id;
+    return result;
   },
   uploadAsset(orgId: string, file: File) {
     const formData = new FormData();

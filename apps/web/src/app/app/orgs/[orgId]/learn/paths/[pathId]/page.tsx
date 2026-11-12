@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 
+import { ProgressMeter } from '@/components/learner/progress-meter';
 import { EmptyState, ErrorState, LoadingBlock } from '@/components/states/async-state';
 import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api/client';
@@ -28,6 +29,7 @@ export default function PathLearnerPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [flash, setFlash] = useState<string | null>(null);
 
   const unlockedSet = useMemo(() => new Set(unlocked), [unlocked]);
   const completedSet = useMemo(() => new Set(progress?.completedNodeIds ?? []), [progress]);
@@ -74,6 +76,7 @@ export default function PathLearnerPage() {
   async function onEnroll() {
     setBusy(true);
     setError(null);
+    setFlash(null);
     try {
       const result = await api.enrollPath(pathId);
       setCachedPathEnrollmentId(pathId, result.enrollment.id);
@@ -81,6 +84,7 @@ export default function PathLearnerPage() {
       setNodes(result.nodes);
       setProgress(result.progress);
       await loadProgress(result.enrollment.id);
+      setFlash('Enrolled — start with the first unlocked lesson.');
     } catch (err) {
       if (err instanceof ApiError && err.code === 'conflict') {
         setError('Already enrolled — refresh or clear cached enrollment.');
@@ -97,10 +101,16 @@ export default function PathLearnerPage() {
     if (!enrollmentId) return;
     setBusy(true);
     setError(null);
+    setFlash(null);
     try {
       const result = await api.completePathNode(enrollmentId, nodeId);
       setProgress(result.progress);
       setUnlocked(result.unlockedNodeIds);
+      setFlash(
+        result.progress.percent === 100
+          ? 'Path complete.'
+          : 'Lesson marked complete — newly unlocked steps are ready.',
+      );
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -115,21 +125,22 @@ export default function PathLearnerPage() {
       <ul className="path-tree" style={{ marginLeft: depth === 0 ? 0 : 16 }}>
         {kids.map((n) => {
           const done = completedSet.has(n.id);
-          const open = unlockedSet.has(n.id);
+          const open = unlockedSet.has(n.id) || !enrollmentId;
           return (
             <li key={n.id}>
-              <div className="list-row" style={{ padding: '0.5rem 0' }}>
+              <div className="list-row path-node-row">
                 <div>
                   <strong>{n.title || n.sectionId}</strong>
                   <div className="meta-row">
                     {done ? (
                       <span className="badge ok">Done</span>
-                    ) : open ? (
+                    ) : open && enrollmentId ? (
                       <span className="badge">Unlocked</span>
-                    ) : (
+                    ) : enrollmentId ? (
                       <span className="badge warn">Locked</span>
+                    ) : (
+                      <span className="badge">Lesson</span>
                     )}
-                    <span className="muted">{n.sectionId}</span>
                     <Link className="muted" href={`/app/orgs/${orgId}/learn/${n.courseId}`}>
                       Open course
                     </Link>
@@ -164,8 +175,11 @@ export default function PathLearnerPage() {
           <p>{path.description || 'Follow the lesson tree in order.'}</p>
         </div>
         {progress ? (
-          <div className="meta-row">
-            <span className="badge ok">{progress.percent}% complete</span>
+          <div style={{ minWidth: 180 }}>
+            <ProgressMeter
+              percent={progress.percent}
+              label={`Path progress ${progress.percent}%`}
+            />
           </div>
         ) : (
           <Button disabled={busy} onClick={() => void onEnroll()}>
@@ -175,11 +189,12 @@ export default function PathLearnerPage() {
       </div>
 
       {error ? <p className="form-error">{error}</p> : null}
+      {flash ? <p className="form-success">{flash}</p> : null}
 
       {nodes.length === 0 ? (
         <EmptyState title="No lessons yet" description="This path has no nodes." />
       ) : (
-        renderBranch(null, 0)
+        <section className="panel">{renderBranch(null, 0)}</section>
       )}
     </div>
   );

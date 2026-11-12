@@ -235,12 +235,15 @@ export default function CourseEditorPage() {
                   ) : null}
                   {b.type === 'graph' ? (
                     <p style={{ margin: '0.4rem 0 0' }}>
-                      {b.kind}: {b.source.slice(0, 80)}
+                      {b.kind ?? 'graph'}: {(b.source ?? '').slice(0, 80)}
                     </p>
                   ) : null}
                   {b.type === 'form' ? (
                     <p style={{ margin: '0.4rem 0 0' }}>
-                      {b.title} · {b.passRule}
+                      {b.form?.title ?? b.title ?? 'Form'} ·{' '}
+                      {typeof b.passRule === 'string'
+                        ? b.passRule
+                        : (b.form?.passRule?.mode ?? b.passRule?.mode ?? 'all_correct')}
                     </p>
                   ) : null}
                 </button>

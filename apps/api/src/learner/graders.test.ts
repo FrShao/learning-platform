@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
+import { LearnerError } from './errors.js';
 import { gradeFormAttempt } from './graders.js';
 import { correctQuizAnswers, sampleForm, wrongQuizAnswers } from './test-fixtures.js';
 
-describe('gradeFormAttempt', () => {
+describe('gradeFormAttempt (domain graders)', () => {
   it('passes all_correct when every auto-gradable answer is right', () => {
     const result = gradeFormAttempt(sampleForm(), correctQuizAnswers());
     expect(result.passed).toBe(true);
@@ -28,7 +29,7 @@ describe('gradeFormAttempt', () => {
     expect(result.passed).toBe(true);
   });
 
-  it('leaves passed null when long_text is pending', () => {
+  it('leaves passed null when long_text is pending and auto portion would pass', () => {
     const form = sampleForm({
       questions: [
         {
@@ -53,15 +54,35 @@ describe('gradeFormAttempt', () => {
     expect(result.gradedAt).toBeNull();
   });
 
-  it('marks short_text without expected as ungraded and blocks pass', () => {
+  it('fails immediately when auto-gradable portion fails even with pending long_text', () => {
     const form = sampleForm({
-      questions: [{ id: 'q1', type: 'short_text', prompt: 'Thoughts?' }],
+      questions: [
+        { id: 'q_long', type: 'long_text', prompt: 'Explain' },
+        { id: 'q_bool', type: 'boolean', prompt: 'True?', correct: true },
+      ],
+    });
+    const result = gradeFormAttempt(form, [
+      { questionId: 'q_long', type: 'long_text', value: 'because' },
+      { questionId: 'q_bool', type: 'boolean', value: false },
+    ]);
+    expect(result.passed).toBe(false);
+    expect(result.gradedAt).toBeInstanceOf(Date);
+  });
+
+  it('ignores unscored short_text in pass evaluation', () => {
+    const form = sampleForm({
+      questions: [
+        { id: 'q1', type: 'short_text', prompt: 'Thoughts?' },
+        { id: 'q_bool', type: 'boolean', prompt: 'True?', correct: true },
+      ],
     });
     const result = gradeFormAttempt(form, [
       { questionId: 'q1', type: 'short_text', value: 'hello' },
+      { questionId: 'q_bool', type: 'boolean', value: true },
     ]);
-    expect(result.grades[0]?.status).toBe('ungraded');
-    expect(result.passed).toBeNull();
+    expect(result.grades.find((g) => g.questionId === 'q1')?.status).toBe('ungraded');
+    expect(result.passed).toBe(true);
+    expect(result.score).toBe(1);
   });
 
   it('applies number tolerance', () => {
@@ -74,5 +95,32 @@ describe('gradeFormAttempt', () => {
     expect(gradeFormAttempt(form, [{ questionId: 'q_n', type: 'number', value: 7 }]).passed).toBe(
       false,
     );
+  });
+
+  it('trims short_text answers like domain graders', () => {
+    const form = sampleForm({
+      questions: [
+        {
+          id: 'q_short',
+          type: 'short_text',
+          prompt: 'Capital',
+          expected: 'Paris',
+          caseSensitive: false,
+        },
+      ],
+    });
+    const result = gradeFormAttempt(form, [
+      { questionId: 'q_short', type: 'short_text', value: '  paris  ' },
+    ]);
+    expect(result.passed).toBe(true);
+  });
+
+  it('throws LearnerError on unknown question ids', () => {
+    expect(() =>
+      gradeFormAttempt(
+        sampleForm({ questions: [{ id: 'q', type: 'boolean', prompt: '?', correct: true }] }),
+        [{ questionId: 'missing', type: 'boolean', value: true }],
+      ),
+    ).toThrow(LearnerError);
   });
 });

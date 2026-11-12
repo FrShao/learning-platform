@@ -7,18 +7,21 @@ import { useEffect, useMemo, useState } from 'react';
 import { EmptyState, ErrorState, LoadingBlock } from '@/components/states/async-state';
 import { api } from '@/lib/api/client';
 import type { CourseDto, PathDto } from '@/lib/api/types';
+import { listCachedEnrollments } from '@/lib/enrollment-cache';
 import { errorMessage } from '@/lib/format';
 
 export default function CatalogPage() {
   const { orgId } = useParams<{ orgId: string }>();
   const [courses, setCourses] = useState<CourseDto[]>([]);
   const [paths, setPaths] = useState<PathDto[]>([]);
+  const [enrolledCount, setEnrolledCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    setEnrolledCount(listCachedEnrollments(orgId).length);
     void Promise.all([
       api.listCourses(orgId).catch(() => [] as CourseDto[]),
       api.listPaths(orgId).catch(() => [] as PathDto[]),
@@ -55,6 +58,11 @@ export default function CatalogPage() {
           <h1>Learn</h1>
           <p>Published courses and learning paths in this organization.</p>
         </div>
+        {enrolledCount > 0 ? (
+          <Link className="btn btn-secondary" href={`/app/orgs/${orgId}/progress`}>
+            My progress ({enrolledCount})
+          </Link>
+        ) : null}
       </div>
 
       <section className="panel">

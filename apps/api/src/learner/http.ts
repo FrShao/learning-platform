@@ -41,7 +41,7 @@ export async function handleLearnerRequest(
         const result = await deps.service.enroll(actor, courseId);
         sendJson(res, 201, {
           enrollment: serializeEnrollment(result.enrollment),
-          progress: serializeProgress(result.progress),
+          progress: serializeProgress(result.progress, result.enrollment.courseId),
         });
         return true;
       }
@@ -49,12 +49,13 @@ export async function handleLearnerRequest(
         const courseId = param(match, 'courseId');
         const published = await deps.service.getPublished(actor, courseId);
         sendJson(res, 200, {
-          course_id: published.courseId,
-          org_id: published.orgId,
+          courseId: published.courseId,
+          orgId: published.orgId,
           title: published.title,
           slug: published.slug,
-          published_commit_id: published.publishedCommitId,
+          publishedCommitId: published.publishedCommitId,
           tree: published.tree,
+          sections: published.tree.sections,
         });
         return true;
       }
@@ -63,15 +64,20 @@ export async function handleLearnerRequest(
         const result = await deps.service.getProgress(actor, enrollmentId);
         sendJson(res, 200, {
           enrollment: serializeEnrollment(result.enrollment),
-          progress: serializeProgress(result.progress),
+          progress: serializeProgress(result.progress, result.enrollment.courseId),
+          ...serializeProgress(result.progress, result.enrollment.courseId),
         });
         return true;
       }
       case 'complete_section': {
         const enrollmentId = param(match, 'enrollmentId');
         const sectionId = param(match, 'sectionId');
-        const progress = await deps.service.completeSection(actor, enrollmentId, sectionId);
-        sendJson(res, 200, { progress: serializeProgress(progress) });
+        const result = await deps.service.completeSection(actor, enrollmentId, sectionId);
+        const progressDto = serializeProgress(result.progress, result.enrollment.courseId);
+        sendJson(res, 200, {
+          progress: progressDto,
+          ...progressDto,
+        });
         return true;
       }
       case 'form_attempt': {
@@ -80,7 +86,10 @@ export async function handleLearnerRequest(
         const body = await readJsonBody(req);
         const answers = extractAnswers(body);
         const attempt = await deps.service.submitFormAttempt(actor, enrollmentId, blockId, answers);
-        sendJson(res, 201, { attempt: serializeAttempt(attempt) });
+        sendJson(res, 201, {
+          attempt: serializeAttempt(attempt),
+          ...serializeAttemptResult(attempt),
+        });
         return true;
       }
       default: {
@@ -233,29 +242,33 @@ function serializeEnrollment(enrollment: {
 }) {
   return {
     id: enrollment.id,
-    course_id: enrollment.courseId,
-    user_id: enrollment.userId,
-    org_id: enrollment.orgId,
-    enrolled_at: enrollment.enrolledAt.toISOString(),
-    revoked_at: enrollment.revokedAt?.toISOString() ?? null,
+    courseId: enrollment.courseId,
+    userId: enrollment.userId,
+    orgId: enrollment.orgId,
+    enrolledAt: enrollment.enrolledAt.toISOString(),
+    revokedAt: enrollment.revokedAt?.toISOString() ?? null,
   };
 }
 
-function serializeProgress(progress: {
-  enrollmentId: string;
-  publishedCommitId: string;
-  completedSectionIds: string[];
-  currentSectionId: string | null;
-  percent: number;
-  updatedAt: Date;
-}) {
+function serializeProgress(
+  progress: {
+    enrollmentId: string;
+    publishedCommitId: string;
+    completedSectionIds: string[];
+    currentSectionId: string | null;
+    percent: number;
+    updatedAt: Date;
+  },
+  courseId: string,
+) {
   return {
-    enrollment_id: progress.enrollmentId,
-    published_commit_id: progress.publishedCommitId,
-    completed_section_ids: progress.completedSectionIds,
-    current_section_id: progress.currentSectionId,
+    enrollmentId: progress.enrollmentId,
+    courseId,
+    publishedCommitId: progress.publishedCommitId,
+    completedSectionIds: progress.completedSectionIds,
+    currentSectionId: progress.currentSectionId,
     percent: progress.percent,
-    updated_at: progress.updatedAt.toISOString(),
+    updatedAt: progress.updatedAt.toISOString(),
   };
 }
 
@@ -274,15 +287,27 @@ function serializeAttempt(attempt: {
 }) {
   return {
     id: attempt.id,
-    enrollment_id: attempt.enrollmentId,
-    section_id: attempt.sectionId,
-    form_block_id: attempt.formBlockId,
-    published_commit_id: attempt.publishedCommitId,
+    enrollmentId: attempt.enrollmentId,
+    sectionId: attempt.sectionId,
+    formBlockId: attempt.formBlockId,
+    publishedCommitId: attempt.publishedCommitId,
     answers: attempt.answers,
     score: attempt.score,
     passed: attempt.passed,
     grades: attempt.grades,
-    graded_at: attempt.gradedAt?.toISOString() ?? null,
-    created_at: attempt.createdAt.toISOString(),
+    gradedAt: attempt.gradedAt?.toISOString() ?? null,
+    createdAt: attempt.createdAt.toISOString(),
+  };
+}
+
+function serializeAttemptResult(attempt: {
+  score: number | null;
+  passed: boolean | null;
+  grades: unknown[];
+}) {
+  return {
+    score: attempt.score,
+    passed: attempt.passed,
+    grades: attempt.grades,
   };
 }
