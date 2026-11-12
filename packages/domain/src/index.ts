@@ -1,5 +1,8 @@
 /** Canonical domain types and pure helpers. See docs/domain-object-models.md. */
 
+export type { Asset, AssetAllowedMime } from './asset/types.js';
+export { ASSET_ALLOWED_MIME, DEFAULT_MAX_ASSET_BYTES, isAllowedAssetMime } from './asset/types.js';
+
 export type {
   ApiKeyId,
   AssetId,

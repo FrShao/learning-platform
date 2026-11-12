@@ -3,6 +3,7 @@ import type {
   ApiKeyCreatedDto,
   ApiKeyDto,
   ApiKeyScope,
+  AssetDto,
   AuthTokenResponse,
   CourseBranchDto,
   CourseCommitDto,
@@ -161,81 +162,115 @@ export const api = {
   revokeApiKey(orgId: string, keyId: string) {
     return apiRequest<void>(`/orgs/${orgId}/api-keys/${keyId}`, { method: 'DELETE' });
   },
-  listCourses(orgId: string) {
-    return apiRequest<CourseDto[]>(`/orgs/${orgId}/courses`);
+  async listCourses(orgId: string) {
+    const data = await apiRequest<{ courses: CourseDto[] } | CourseDto[]>(`/orgs/${orgId}/courses`);
+    return Array.isArray(data) ? data : data.courses;
   },
-  createCourse(orgId: string, input: { slug: string; title: string; description: string }) {
-    return apiRequest<CourseDto>(`/orgs/${orgId}/courses`, { method: 'POST', body: input });
+  async createCourse(orgId: string, input: { slug: string; title: string; description: string }) {
+    const data = await apiRequest<{ course: CourseDto } | CourseDto>(`/orgs/${orgId}/courses`, {
+      method: 'POST',
+      body: input,
+    });
+    return 'course' in data ? data.course : data;
   },
-  getCourse(courseId: string) {
-    return apiRequest<CourseDto>(`/courses/${courseId}`);
+  async getCourse(courseId: string) {
+    const data = await apiRequest<{ course: CourseDto } | CourseDto>(`/courses/${courseId}`);
+    return 'course' in data ? data.course : data;
   },
-  updateCourse(
+  async updateCourse(
     courseId: string,
     input: Partial<{ slug: string; title: string; description: string }>,
   ) {
-    return apiRequest<CourseDto>(`/courses/${courseId}`, { method: 'PATCH', body: input });
+    const data = await apiRequest<{ course: CourseDto } | CourseDto>(`/courses/${courseId}`, {
+      method: 'PATCH',
+      body: input,
+    });
+    return 'course' in data ? data.course : data;
   },
   deleteCourse(courseId: string) {
     return apiRequest<void>(`/courses/${courseId}`, { method: 'DELETE' });
   },
-  listBranches(courseId: string) {
-    return apiRequest<CourseBranchDto[]>(`/courses/${courseId}/branches`);
+  async listBranches(courseId: string) {
+    const data = await apiRequest<{ branches: CourseBranchDto[] } | CourseBranchDto[]>(
+      `/courses/${courseId}/branches`,
+    );
+    return Array.isArray(data) ? data : data.branches;
   },
-  createBranch(courseId: string, input: { name: string; from_commit_id: string }) {
-    return apiRequest<CourseBranchDto>(`/courses/${courseId}/branches`, {
-      method: 'POST',
-      body: input,
-    });
+  async createBranch(courseId: string, input: { name: string; from_commit_id: string }) {
+    const data = await apiRequest<{ branch: CourseBranchDto } | CourseBranchDto>(
+      `/courses/${courseId}/branches`,
+      { method: 'POST', body: input },
+    );
+    return 'branch' in data ? data.branch : data;
   },
-  getBranch(courseId: string, name: string) {
-    return apiRequest<CourseBranchDto>(`/courses/${courseId}/branches/${encodeURIComponent(name)}`);
+  async getBranch(courseId: string, name: string) {
+    const data = await apiRequest<{ branch: CourseBranchDto } | CourseBranchDto>(
+      `/courses/${courseId}/branches/${encodeURIComponent(name)}`,
+    );
+    return 'branch' in data ? data.branch : data;
   },
   deleteBranch(courseId: string, name: string) {
     return apiRequest<void>(`/courses/${courseId}/branches/${encodeURIComponent(name)}`, {
       method: 'DELETE',
     });
   },
-  getWorkingTree(courseId: string, branchName: string) {
-    return apiRequest<WorkingTreeDto>(
+  async getWorkingTree(courseId: string, branchName: string) {
+    const data = await apiRequest<{ workingTree: WorkingTreeDto } | WorkingTreeDto>(
       `/courses/${courseId}/branches/${encodeURIComponent(branchName)}/tree`,
     );
+    return 'workingTree' in data ? data.workingTree : data;
   },
-  putWorkingTree(courseId: string, branchName: string, tree: CourseTreeDto) {
-    return apiRequest<WorkingTreeDto>(
+  async putWorkingTree(courseId: string, branchName: string, tree: CourseTreeDto) {
+    const data = await apiRequest<{ workingTree: WorkingTreeDto } | WorkingTreeDto>(
       `/courses/${courseId}/branches/${encodeURIComponent(branchName)}/tree`,
       { method: 'PUT', body: tree },
     );
+    return 'workingTree' in data ? data.workingTree : data;
   },
-  patchWorkingTree(courseId: string, branchName: string, ops: unknown[]) {
-    return apiRequest<WorkingTreeDto>(
+  async patchWorkingTree(courseId: string, branchName: string, ops: unknown[]) {
+    const data = await apiRequest<{ workingTree: WorkingTreeDto } | WorkingTreeDto>(
       `/courses/${courseId}/branches/${encodeURIComponent(branchName)}/tree`,
       { method: 'PATCH', body: { ops } },
     );
+    return 'workingTree' in data ? data.workingTree : data;
   },
   getDiff(courseId: string, branchName: string) {
     return apiRequest<DiffDto>(
       `/courses/${courseId}/branches/${encodeURIComponent(branchName)}/diff`,
     );
   },
-  commit(courseId: string, branchName: string, input: { message: string }) {
-    return apiRequest<CourseCommitDto>(
+  async commit(courseId: string, branchName: string, input: { message: string }) {
+    const data = await apiRequest<{ commit: CourseCommitDto } | CourseCommitDto>(
       `/courses/${courseId}/branches/${encodeURIComponent(branchName)}/commit`,
       { method: 'POST', body: input },
     );
+    return 'commit' in data ? data.commit : data;
   },
-  listCommits(courseId: string, branchName?: string) {
+  async listCommits(courseId: string, branchName?: string) {
     const q = branchName ? `?branch=${encodeURIComponent(branchName)}` : '';
-    return apiRequest<CourseCommitDto[]>(`/courses/${courseId}/commits${q}`);
+    const data = await apiRequest<{ commits: CourseCommitDto[] } | CourseCommitDto[]>(
+      `/courses/${courseId}/commits${q}`,
+    );
+    return Array.isArray(data) ? data : data.commits;
   },
-  getCommit(courseId: string, commitId: string) {
-    return apiRequest<CourseCommitDto>(`/courses/${courseId}/commits/${commitId}`);
+  async getCommit(courseId: string, commitId: string) {
+    const data = await apiRequest<{ commit: CourseCommitDto } | CourseCommitDto>(
+      `/courses/${courseId}/commits/${commitId}`,
+    );
+    return 'commit' in data ? data.commit : data;
   },
-  getCommitTree(courseId: string, commitId: string) {
-    return apiRequest<CourseTreeDto>(`/courses/${courseId}/commits/${commitId}/tree`);
+  async getCommitTree(courseId: string, commitId: string) {
+    const data = await apiRequest<{ snapshot: { tree: CourseTreeDto } } | CourseTreeDto>(
+      `/courses/${courseId}/commits/${commitId}/tree`,
+    );
+    return 'snapshot' in data ? data.snapshot.tree : data;
   },
-  publish(courseId: string, input: { commit_id: string }) {
-    return apiRequest<CourseDto>(`/courses/${courseId}/publish`, { method: 'POST', body: input });
+  async publish(courseId: string, input: { commit_id: string }) {
+    const data = await apiRequest<{ course: CourseDto } | CourseDto>(
+      `/courses/${courseId}/publish`,
+      { method: 'POST', body: input },
+    );
+    return 'course' in data ? data.course : data;
   },
   async getPublished(courseId: string) {
     const data = await apiRequest<
@@ -305,10 +340,13 @@ export const api = {
   uploadAsset(orgId: string, file: File) {
     const formData = new FormData();
     formData.append('file', file);
-    return apiRequest<{ id: string; url: string }>(`/orgs/${orgId}/assets`, { formData });
+    return apiRequest<AssetDto>(`/orgs/${orgId}/assets`, { formData });
   },
   getAsset(assetId: string) {
-    return apiRequest<{ id: string; url: string }>(`/assets/${assetId}`);
+    return apiRequest<AssetDto>(`/assets/${assetId}`);
+  },
+  assetContentUrl(assetId: string) {
+    return `${getApiBaseUrl()}/v1/assets/${assetId}/content`;
   },
   async listPaths(orgId: string) {
     const data = await apiRequest<{ paths: PathDto[] }>(`/orgs/${orgId}/paths`);
