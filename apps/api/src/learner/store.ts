@@ -18,7 +18,7 @@ import type {
 export interface CreateEnrollmentInput {
   courseId: CourseId;
   userId: UserId;
-  orgId: OrgId;
+  orgId: OrgId | null;
   publishedCommitId: CourseCommitId;
   firstSectionId: SectionId | null;
   now?: Date;

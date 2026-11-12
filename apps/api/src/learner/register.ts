@@ -65,6 +65,7 @@ function createCoursePublishedReader(client: DbClient): CoursePublishedReader {
       return {
         id: course.id,
         orgId: course.orgId,
+        ownerUserId: course.ownerUserId,
         slug: course.slug,
         title: course.title,
         publishedCommitId: course.publishedCommitId,

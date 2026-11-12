@@ -64,6 +64,15 @@ export {
 //   import { hashApiKey } from '@lp/domain/api-key-crypto'
 //   import { hashCourseTree } from '@lp/domain/course-hash'
 
+export type { ResourceOwner } from './ownership.js';
+export {
+  canAuthorOwnedResource,
+  canLearnOwnedResource,
+  ownerOrgId,
+  ownerUserId,
+  resourceOwnerFromColumns,
+} from './ownership.js';
+
 export type {
   BlockBase,
   BooleanQuestion,

@@ -32,6 +32,10 @@ export class PathService {
     return this.repo.listByOrg(orgId);
   }
 
+  listPersonalPaths(ownerUserId: string): Promise<Path[]> {
+    return this.repo.listByOwnerUser(ownerUserId);
+  }
+
   async getPath(pathId: string): Promise<Path> {
     const path = await this.repo.getById(pathId);
     if (!path) {
@@ -41,7 +45,8 @@ export class PathService {
   }
 
   async createPath(input: {
-    orgId: string;
+    orgId?: string | null;
+    ownerUserId?: string | null;
     slug: string;
     title: string;
     description?: string;
@@ -55,9 +60,19 @@ export class PathService {
       throw new DomainError('validation', 'Title must be 1–200 characters');
     }
 
+    const orgId = input.orgId ?? null;
+    const ownerUserId = input.ownerUserId ?? null;
+    if ((orgId == null) === (ownerUserId == null)) {
+      throw new DomainError(
+        'validation',
+        'Path ownership requires exactly one of orgId or ownerUserId',
+      );
+    }
+
     try {
       return await this.repo.createPath({
-        orgId: input.orgId,
+        orgId,
+        ownerUserId,
         slug,
         title: input.title.trim(),
         description: input.description ?? '',
@@ -225,14 +240,17 @@ export class PathService {
     userId: string,
   ): Promise<{ enrollment: PathEnrollment; progress: PathProgress; nodes: PathNode[] }> {
     const path = await this.getPath(pathId);
-    const membership = await getMembership(this.db, path.orgId, userId);
-    if (!membership) {
-      throw new DomainError('not_found', 'Not a member of this organization');
-    }
 
-    const org = await findOrganizationById(this.db, path.orgId);
-    const enforceSequential =
-      org?.settings.enforceSequentialProgress ?? DEFAULT_ORG_SETTINGS.enforceSequentialProgress;
+    let enforceSequential = DEFAULT_ORG_SETTINGS.enforceSequentialProgress;
+    if (path.owner.kind === 'org') {
+      const membership = await getMembership(this.db, path.owner.orgId, userId);
+      if (!membership) {
+        throw new DomainError('not_found', 'Not a member of this organization');
+      }
+      const org = await findOrganizationById(this.db, path.owner.orgId);
+      enforceSequential =
+        org?.settings.enforceSequentialProgress ?? DEFAULT_ORG_SETTINGS.enforceSequentialProgress;
+    }
 
     const result = await this.repo.enroll({
       pathId,
@@ -269,9 +287,12 @@ export class PathService {
 
     const path = await this.getPath(enrollment.pathId);
     const nodes = await this.repo.listNodes(path.id);
-    const org = await findOrganizationById(this.db, path.orgId);
-    const enforceSequential =
-      org?.settings.enforceSequentialProgress ?? DEFAULT_ORG_SETTINGS.enforceSequentialProgress;
+    let enforceSequential = DEFAULT_ORG_SETTINGS.enforceSequentialProgress;
+    if (path.orgId) {
+      const org = await findOrganizationById(this.db, path.orgId);
+      enforceSequential =
+        org?.settings.enforceSequentialProgress ?? DEFAULT_ORG_SETTINGS.enforceSequentialProgress;
+    }
 
     const states = pathNodeUnlockStates(nodes, progress.completedNodeIds, enforceSequential);
     return {
@@ -305,9 +326,12 @@ export class PathService {
     }
 
     const nodes = await this.repo.listNodes(enrollment.pathId);
-    const org = await findOrganizationById(this.db, enrollment.orgId);
-    const enforceSequential =
-      org?.settings.enforceSequentialProgress ?? DEFAULT_ORG_SETTINGS.enforceSequentialProgress;
+    let enforceSequential = DEFAULT_ORG_SETTINGS.enforceSequentialProgress;
+    if (enrollment.orgId) {
+      const org = await findOrganizationById(this.db, enrollment.orgId);
+      enforceSequential =
+        org?.settings.enforceSequentialProgress ?? DEFAULT_ORG_SETTINGS.enforceSequentialProgress;
+    }
 
     if (!nodes.some((n) => n.id === nodeId)) {
       throw new DomainError('not_found', 'Path node not found');

@@ -16,7 +16,9 @@ import { mapPath, mapPathEnrollment, mapPathNode, mapPathProgress } from '../map
 import { learningPaths, pathEnrollments, pathNodes, pathProgress } from '../schema/paths.js';
 
 export interface CreatePathInput {
-  orgId: string;
+  /** Exactly one of orgId / ownerUserId. */
+  orgId?: string | null;
+  ownerUserId?: string | null;
   slug: string;
   title: string;
   description: string;
@@ -35,6 +37,15 @@ export class PathRepository {
     return rows.map(mapPath);
   }
 
+  async listByOwnerUser(ownerUserId: string): Promise<Path[]> {
+    const rows = await this.db
+      .select()
+      .from(learningPaths)
+      .where(and(eq(learningPaths.ownerUserId, ownerUserId), isNull(learningPaths.deletedAt)))
+      .orderBy(desc(learningPaths.updatedAt));
+    return rows.map(mapPath);
+  }
+
   async getById(pathId: string): Promise<Path | null> {
     const rows = await this.db
       .select()
@@ -46,11 +57,21 @@ export class PathRepository {
   }
 
   async createPath(input: CreatePathInput): Promise<Path> {
+    const orgId = input.orgId ?? null;
+    const ownerUserId = input.ownerUserId ?? null;
+    if ((orgId == null) === (ownerUserId == null)) {
+      throw new DomainError(
+        'validation',
+        'Path ownership requires exactly one of orgId or ownerUserId',
+      );
+    }
+
     const now = new Date();
     const [row] = await this.db
       .insert(learningPaths)
       .values({
-        orgId: input.orgId,
+        orgId,
+        ownerUserId,
         slug: input.slug,
         title: input.title,
         description: input.description,
@@ -157,7 +178,7 @@ export class PathRepository {
   async enroll(input: {
     pathId: string;
     userId: string;
-    orgId: string;
+    orgId: string | null;
     enforceSequential: boolean;
   }): Promise<{ enrollment: PathEnrollment; progress: PathProgress }> {
     const path = await this.getById(input.pathId);

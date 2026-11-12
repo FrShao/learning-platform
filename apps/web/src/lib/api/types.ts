@@ -97,9 +97,15 @@ export interface ApiKeyCreatedDto extends ApiKeyDto {
   secret: string;
 }
 
+export type ResourceOwnerDto =
+  | { kind: 'user'; userId: UserId }
+  | { kind: 'org'; orgId: OrgId };
+
 export interface CourseDto {
   id: string;
-  orgId: OrgId;
+  owner?: ResourceOwnerDto;
+  orgId: OrgId | null;
+  ownerUserId?: UserId | null;
   slug: string;
   title: string;
   description: string;
@@ -258,7 +264,9 @@ export interface FormAttemptResultDto {
 
 export interface PathDto {
   id: string;
-  orgId: OrgId;
+  owner?: ResourceOwnerDto;
+  orgId: OrgId | null;
+  ownerUserId?: UserId | null;
   slug: string;
   title: string;
   description: string;
@@ -282,7 +290,7 @@ export interface PathEnrollmentDto {
   id: string;
   pathId: string;
   userId: UserId;
-  orgId: OrgId;
+  orgId: OrgId | null;
   enrolledAt: string;
   revokedAt: string | null;
 }

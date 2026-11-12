@@ -166,8 +166,19 @@ export const api = {
     const data = await apiRequest<{ courses: CourseDto[] } | CourseDto[]>(`/orgs/${orgId}/courses`);
     return Array.isArray(data) ? data : data.courses;
   },
+  async listPersonalCourses() {
+    const data = await apiRequest<{ courses: CourseDto[] } | CourseDto[]>(`/me/courses`);
+    return Array.isArray(data) ? data : data.courses;
+  },
   async createCourse(orgId: string, input: { slug: string; title: string; description: string }) {
     const data = await apiRequest<{ course: CourseDto } | CourseDto>(`/orgs/${orgId}/courses`, {
+      method: 'POST',
+      body: input,
+    });
+    return 'course' in data ? data.course : data;
+  },
+  async createPersonalCourse(input: { slug: string; title: string; description: string }) {
+    const data = await apiRequest<{ course: CourseDto } | CourseDto>(`/me/courses`, {
       method: 'POST',
       body: input,
     });
@@ -352,8 +363,19 @@ export const api = {
     const data = await apiRequest<{ paths: PathDto[] }>(`/orgs/${orgId}/paths`);
     return data.paths;
   },
+  async listPersonalPaths() {
+    const data = await apiRequest<{ paths: PathDto[] }>(`/me/paths`);
+    return data.paths;
+  },
   async createPath(orgId: string, input: { slug: string; title: string; description: string }) {
     const data = await apiRequest<{ path: PathDto }>(`/orgs/${orgId}/paths`, {
+      method: 'POST',
+      body: input,
+    });
+    return data.path;
+  },
+  async createPersonalPath(input: { slug: string; title: string; description: string }) {
+    const data = await apiRequest<{ path: PathDto }>(`/me/paths`, {
       method: 'POST',
       body: input,
     });

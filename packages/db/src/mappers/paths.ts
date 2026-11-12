@@ -1,8 +1,10 @@
 import type { Path, PathEnrollment, PathNode, PathProgress } from '@lp/domain';
+import { resourceOwnerFromColumns } from '@lp/domain';
 
 export interface PathRow {
   id: string;
-  orgId: string;
+  orgId: string | null;
+  ownerUserId: string | null;
   slug: string;
   title: string;
   description: string;
@@ -28,7 +30,7 @@ export interface PathEnrollmentRow {
   id: string;
   pathId: string;
   userId: string;
-  orgId: string;
+  orgId: string | null;
   enrolledAt: Date;
   revokedAt: Date | null;
 }
@@ -42,9 +44,12 @@ export interface PathProgressRow {
 }
 
 export function mapPath(row: PathRow): Path {
+  const owner = resourceOwnerFromColumns(row.orgId, row.ownerUserId);
   return {
     id: row.id,
-    orgId: row.orgId,
+    owner,
+    orgId: owner.kind === 'org' ? owner.orgId : null,
+    ownerUserId: owner.kind === 'user' ? owner.userId : null,
     slug: row.slug,
     title: row.title,
     description: row.description,

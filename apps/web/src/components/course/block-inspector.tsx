@@ -39,7 +39,8 @@ export function BlockInspector({
   onDelete,
   busy,
 }: {
-  orgId: string;
+  /** Org for asset upload; null for personal courses (image upload disabled). */
+  orgId: string | null;
   block: CourseBlockDto;
   onSave: SaveFn;
   onDelete: () => Promise<void>;
@@ -61,6 +62,10 @@ export function BlockInspector({
 
   async function onUpload(file: File | null) {
     if (!file || draft.type !== 'image') return;
+    if (!orgId) {
+      setUploadError('Image upload requires an organization-owned course.');
+      return;
+    }
     setUploading(true);
     setUploadError(null);
     try {
