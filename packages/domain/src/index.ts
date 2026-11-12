@@ -12,6 +12,9 @@ export type {
   FormAttemptId,
   OptionId,
   OrgId,
+  PathEnrollmentId,
+  PathId,
+  PathNodeId,
   QuestionId,
   RefreshTokenId,
   SectionId,
@@ -140,3 +143,35 @@ export {
   normalizeSectionOrders,
   validateCourseTree,
 } from './course/index.js';
+
+export type {
+  LessonRef,
+  Path,
+  PathEnrollment,
+  PathNode,
+  PathNodeInput,
+  PathNodeUnlockState,
+  PathProgress,
+} from './path/index.js';
+
+export {
+  canCompletePathNode,
+  childrenOf,
+  clonePathNodes,
+  computePathPercent,
+  deletePathNode,
+  insertPathNode,
+  isDescendant,
+  isPathNodeCompleted,
+  isPathNodeUnlocked,
+  movePathNode,
+  nextPathNodeId,
+  normalizeSiblingOrders,
+  pathNodeUnlockStates,
+  pathRootCount,
+  reorderPathSiblings,
+  replacePathTree,
+  rootNodes,
+  validatePathTree,
+  walkPathNodes,
+} from './path/index.js';
