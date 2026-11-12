@@ -26,7 +26,12 @@ const TOKEN_KEY = 'lp_access_token';
 const LAST_ORG_KEY = 'lp_last_org_id';
 
 export function getApiBaseUrl(): string {
-  const raw = process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:3000';
+  // Empty / unset → same-origin (Next rewrites `/v1` to the API). Prefer this when only
+  // the web port is exposed (Cursor port forward / Try Live).
+  const raw = process.env['NEXT_PUBLIC_API_URL'];
+  if (raw === undefined || raw.trim() === '') {
+    return '';
+  }
   return raw.replace(/\/$/, '');
 }
 

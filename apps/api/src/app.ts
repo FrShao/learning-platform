@@ -1,3 +1,4 @@
+import cors from '@fastify/cors';
 import type { AppEnv } from '@lp/config';
 import {
   createDbClient,
@@ -65,6 +66,13 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
     : createDbClient(options.databaseUrl);
   const app = Fastify({
     logger: options.env.nodeEnv !== 'test',
+  });
+
+  // Browser UI (separate origin / port) needs preflight + ACAO on /v1/*.
+  await app.register(cors, {
+    origin: true,
+    methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key', 'Accept'],
   });
 
   app.decorate('dbClient', client);

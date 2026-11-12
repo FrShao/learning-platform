@@ -73,7 +73,9 @@ services:
       dockerfile: apps/web/Dockerfile
       target: runner
       args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3000}
+        # Empty = browser uses same-origin `/v1` (rewritten to API_URL inside the web container)
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-}
+        API_URL: ${API_URL:-http://api:3000}
     restart: unless-stopped
     environment:
       <<: *node-env

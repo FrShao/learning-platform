@@ -20,8 +20,12 @@ RUN pnpm install --frozen-lockfile || pnpm install
 # ---------- build ----------
 FROM deps AS build
 WORKDIR /app
-ARG NEXT_PUBLIC_API_URL=http://localhost:3000
+# Empty default: client uses same-origin `/v1` (Next rewrites to API_URL)
+ARG NEXT_PUBLIC_API_URL=
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+# Baked into next.config rewrites at build time (compose network hostname)
+ARG API_URL=http://api:3000
+ENV API_URL=$API_URL
 COPY . .
 RUN pnpm --filter @lp/domain build \
  && pnpm --filter @lp/web build
