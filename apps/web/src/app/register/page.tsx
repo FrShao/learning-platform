@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { type FormEvent, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useAuth } from '@/lib/auth/auth-context';
 import { errorMessage } from '@/lib/format';
 
@@ -45,23 +47,30 @@ export default function RegisterPage() {
           <h1>Create account</h1>
           <p className="lede">Start by creating your user, then pick or create an organization.</p>
         </div>
-        <label className="field">
-          <span>Name</span>
-          <input required value={name} onChange={(e) => setName(e.target.value)} />
-        </label>
-        <label className="field">
-          <span>Email</span>
-          <input
+        <div className="field">
+          <Label htmlFor="register-name">Name</Label>
+          <Input
+            id="register-name"
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+        </div>
+        <div className="field">
+          <Label htmlFor="register-email">Email</Label>
+          <Input
+            id="register-email"
             type="email"
             autoComplete="email"
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
-        </label>
-        <label className="field">
-          <span>Password</span>
-          <input
+        </div>
+        <div className="field">
+          <Label htmlFor="register-password">Password</Label>
+          <Input
+            id="register-password"
             type="password"
             autoComplete="new-password"
             required
@@ -69,7 +78,7 @@ export default function RegisterPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-        </label>
+        </div>
         {error ? <p className="form-error">{error}</p> : null}
         <Button type="submit" disabled={busy}>
           {busy ? 'Creating…' : 'Create account'}

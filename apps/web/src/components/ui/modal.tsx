@@ -2,8 +2,15 @@
 
 import type { ReactNode } from 'react';
 
-import { Button } from './button';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
+/** Controlled dialog wrapper kept for existing call sites. */
 export function Modal({
   title,
   children,
@@ -16,23 +23,21 @@ export function Modal({
   footer?: ReactNode;
 }) {
   return (
-    <div className="modal-backdrop" role="presentation" onClick={onClose}>
-      <div
-        className="modal-panel"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="modal-title"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="modal-header">
-          <h2 id="modal-title">{title}</h2>
-          <Button variant="ghost" aria-label="Close" onClick={onClose}>
-            ✕
-          </Button>
-        </div>
-        <div className="modal-body">{children}</div>
-        {footer ? <div className="modal-footer">{footer}</div> : null}
-      </div>
-    </div>
+    <Dialog
+      open
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+    >
+      <DialogContent className="sm:max-w-md" showCloseButton>
+        <DialogHeader>
+          <DialogTitle className="font-[family-name:var(--font-display)] text-lg">
+            {title}
+          </DialogTitle>
+        </DialogHeader>
+        <div className="grid gap-3">{children}</div>
+        {footer ? <DialogFooter className="border-0 bg-transparent">{footer}</DialogFooter> : null}
+      </DialogContent>
+    </Dialog>
   );
 }

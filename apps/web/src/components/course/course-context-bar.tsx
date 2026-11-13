@@ -1,10 +1,27 @@
 'use client';
 
+import { MoreHorizontal } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Modal } from '@/components/ui/modal';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { api } from '@/lib/api/client';
 import type { CourseBranchDto, CourseCommitDto } from '@/lib/api/types';
 import { errorMessage, shortId } from '@/lib/format';
@@ -82,59 +99,71 @@ export function CourseContextBar({
     <>
       <div className="course-context-bar">
         <div className="course-context-main">
-          <label className="branch-picker">
-            <span>Branch</span>
-            <select
+          <div className="branch-picker">
+            <Label htmlFor="branch-select">Branch</Label>
+            <Select
               value={branchName}
-              onChange={(e) => {
-                window.location.href = `${base}/edit/branches/${encodeURIComponent(e.target.value)}`;
+              onValueChange={(value) => {
+                if (value == null) return;
+                window.location.href = `${base}/edit/branches/${encodeURIComponent(value)}`;
               }}
             >
-              {branches.map((b) => (
-                <option key={b.name} value={b.name}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <span className={dirty ? 'dirty-pill dirty' : 'dirty-pill clean'}>
+              <SelectTrigger id="branch-select" className="min-w-28">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {branches.map((b) => (
+                  <SelectItem key={b.name} value={b.name}>
+                    {b.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <Badge
+            variant={dirty ? 'outline' : 'secondary'}
+            className={dirty ? 'dirty-pill dirty' : 'dirty-pill clean'}
+          >
             {dirty ? `Dirty vs ${shortId(baseCommitId)}` : `Clean · base ${shortId(baseCommitId)}`}
-          </span>
+          </Badge>
         </div>
         <div className="course-context-actions">
           {showExtraNav ? (
-            <Link
-              className="btn btn-secondary"
-              href={`${base}/diff/branches/${encodeURIComponent(branchName)}`}
+            <Button
+              variant="secondary"
+              render={<Link href={`${base}/diff/branches/${encodeURIComponent(branchName)}`} />}
             >
               Diff
-            </Link>
+            </Button>
           ) : null}
           <Button variant="secondary" onClick={() => setCommitOpen(true)} disabled={!dirty}>
             Commit…
           </Button>
           <Button onClick={() => setPublishOpen(true)}>Publish</Button>
-          <details className="overflow-menu">
-            <summary className="btn btn-ghost">⋯</summary>
-            <div className="dropdown-panel">
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={<Button variant="ghost" size="icon-sm" aria-label="More actions" />}
+            >
+              <MoreHorizontal className="size-4" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
               {showExtraNav ? (
                 <>
-                  <Link
-                    className="dropdown-item"
-                    href={`${base}/history?branch=${encodeURIComponent(branchName)}`}
+                  <DropdownMenuItem
+                    render={
+                      <Link href={`${base}/history?branch=${encodeURIComponent(branchName)}`} />
+                    }
                   >
                     History
-                  </Link>
-                  <Link className="dropdown-item" href={`${base}/branches`}>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem render={<Link href={`${base}/branches`} />}>
                     Branches
-                  </Link>
+                  </DropdownMenuItem>
                 </>
               ) : null}
-              <Link className="dropdown-item" href={base}>
-                Overview
-              </Link>
-            </div>
-          </details>
+              <DropdownMenuItem render={<Link href={base} />}>Overview</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -154,15 +183,16 @@ export function CourseContextBar({
           }
         >
           <p className="muted">Branch: {branchName}</p>
-          <label className="field">
-            <span>Message</span>
-            <input
+          <div className="field">
+            <Label htmlFor="commit-message">Message</Label>
+            <Input
+              id="commit-message"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Describe this change"
               autoFocus
             />
-          </label>
+          </div>
           {error ? <p className="form-error">{error}</p> : null}
         </Modal>
       ) : null}

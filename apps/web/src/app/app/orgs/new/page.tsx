@@ -84,9 +84,9 @@ function CreateOrgInner() {
             <Button type="submit" disabled={busy}>
               {busy ? 'Creating…' : 'Create'}
             </Button>
-            <Link className="btn btn-ghost" href="/app">
+            <Button variant="ghost" render={<Link href="/app" />}>
               Cancel
-            </Link>
+            </Button>
           </div>
         </form>
       </main>

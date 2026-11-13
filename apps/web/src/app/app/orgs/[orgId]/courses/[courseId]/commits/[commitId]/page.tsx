@@ -95,9 +95,12 @@ export default function CommitSnapshotPage() {
           <Button variant="secondary" onClick={() => setBranchOpen(true)}>
             Branch from here
           </Button>
-          <Link className="btn btn-ghost" href={`/app/orgs/${orgId}/courses/${courseId}/history`}>
+          <Button
+            variant="ghost"
+            render={<Link href={`/app/orgs/${orgId}/courses/${courseId}/history`} />}
+          >
             History
-          </Link>
+          </Button>
         </div>
       </div>
 

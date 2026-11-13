@@ -5,11 +5,7 @@ import { z } from 'zod';
 import { assertCourseWrite, requireAuth, type CourseAuthContext } from '../courses/auth-hook.js';
 import { forbidden, unauthorized } from '../errors.js';
 import { sendDomainError, sendError } from '../lib/errors.js';
-import {
-  assertCanAuthorOwned,
-  requireUserSession,
-  resolveOrgRole,
-} from '../ownership-acl.js';
+import { assertCanAuthorOwned, requireUserSession, resolveOrgRole } from '../ownership-acl.js';
 
 import type { PathService } from './service.js';
 

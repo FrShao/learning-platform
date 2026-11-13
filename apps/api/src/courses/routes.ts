@@ -4,11 +4,7 @@ import { z } from 'zod';
 
 import { forbidden } from '../errors.js';
 import { sendDomainError, sendError } from '../lib/errors.js';
-import {
-  assertCanAuthorOwned,
-  requireUserSession,
-  resolveOrgRole,
-} from '../ownership-acl.js';
+import { assertCanAuthorOwned, requireUserSession, resolveOrgRole } from '../ownership-acl.js';
 
 import {
   assertCoursePublish,

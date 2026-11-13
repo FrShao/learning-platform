@@ -1,5 +1,6 @@
 'use client';
 
+import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
@@ -7,6 +8,8 @@ import { useEffect } from 'react';
 import { RequireAuth } from '@/components/layout/require-auth';
 import { TopBar } from '@/components/layout/top-bar';
 import { EmptyState } from '@/components/states/async-state';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { getLastOrgId } from '@/lib/api/client';
 import { useAuth } from '@/lib/auth/auth-context';
 import { roleLabel } from '@/lib/roles';
@@ -46,12 +49,10 @@ function OrgPickerInner() {
             <p>Use your personal library without an org, or open an organization.</p>
           </div>
           <div className="cta-row">
-            <Link className="btn btn-secondary" href="/app/me">
+            <Button variant="secondary" render={<Link href="/app/me" />}>
               Personal library
-            </Link>
-            <Link className="btn btn-primary" href="/app/orgs/new">
-              Create organization
-            </Link>
+            </Button>
+            <Button render={<Link href="/app/orgs/new" />}>Create organization</Button>
           </div>
         </div>
         <div className="card-list">
@@ -62,17 +63,13 @@ function OrgPickerInner() {
                 <span>Courses and paths you own — no organization required</span>
               </div>
             </div>
-            <span className="muted">Open →</span>
+            <ArrowRight className="size-4 text-muted-foreground" aria-hidden />
           </Link>
           {memberships.length === 0 ? (
             <EmptyState
               title="No organizations yet"
               description="Optional: create an organization to collaborate with a team."
-              action={
-                <Link className="btn btn-primary" href="/app/orgs/new">
-                  Create organization
-                </Link>
-              }
+              action={<Button render={<Link href="/app/orgs/new" />}>Create organization</Button>}
             />
           ) : (
             memberships.map((m) => (
@@ -81,10 +78,10 @@ function OrgPickerInner() {
                   <strong>{m.org.name}</strong>
                   <div className="meta-row">
                     <span>/{m.org.slug}</span>
-                    <span className="badge">{roleLabel(m.role)}</span>
+                    <Badge variant="secondary">{roleLabel(m.role)}</Badge>
                   </div>
                 </div>
-                <span className="muted">Open →</span>
+                <ArrowRight className="size-4 text-muted-foreground" aria-hidden />
               </Link>
             ))
           )}
