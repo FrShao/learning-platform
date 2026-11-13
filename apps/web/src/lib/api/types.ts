@@ -97,9 +97,7 @@ export interface ApiKeyCreatedDto extends ApiKeyDto {
   secret: string;
 }
 
-export type ResourceOwnerDto =
-  | { kind: 'user'; userId: UserId }
-  | { kind: 'org'; orgId: OrgId };
+export type ResourceOwnerDto = { kind: 'user'; userId: UserId } | { kind: 'org'; orgId: OrgId };
 
 export interface CourseDto {
   id: string;

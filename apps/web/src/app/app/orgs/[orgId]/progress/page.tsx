@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 
 import { ProgressMeter } from '@/components/learner/progress-meter';
 import { EmptyState, LoadingBlock } from '@/components/states/async-state';
+import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api/client';
 import type { CourseDto, LearnerProgressDto } from '@/lib/api/types';
 import { listCachedEnrollments } from '@/lib/enrollment-cache';
@@ -72,20 +73,16 @@ export default function ProgressPage() {
             yet, so this hub cannot discover enrollments from other devices.
           </p>
         </div>
-        <Link className="btn btn-secondary" href={`/app/orgs/${orgId}/learn`}>
+        <Button variant="secondary" render={<Link href={`/app/orgs/${orgId}/learn`} />}>
           Browse catalog
-        </Link>
+        </Button>
       </div>
 
       {rows.length === 0 ? (
         <EmptyState
           title="No enrollments in this browser"
           description="Enroll from a course detail page to start tracking progress here."
-          action={
-            <Link className="btn btn-primary" href={`/app/orgs/${orgId}/learn`}>
-              Go to Learn
-            </Link>
-          }
+          action={<Button render={<Link href={`/app/orgs/${orgId}/learn`} />}>Go to Learn</Button>}
         />
       ) : (
         <div className="card-list">
@@ -112,19 +109,23 @@ export default function ProgressPage() {
                 )}
               </div>
               {row.progress?.currentSectionId ? (
-                <Link
-                  className="btn btn-secondary"
-                  href={`/app/orgs/${orgId}/learn/${row.progress.courseId}/enrollments/${row.enrollmentId}/sections/${row.progress.currentSectionId}`}
+                <Button
+                  variant="secondary"
+                  render={
+                    <Link
+                      href={`/app/orgs/${orgId}/learn/${row.progress.courseId}/enrollments/${row.enrollmentId}/sections/${row.progress.currentSectionId}`}
+                    />
+                  }
                 >
                   Resume
-                </Link>
+                </Button>
               ) : row.progress?.courseId ? (
-                <Link
-                  className="btn btn-ghost"
-                  href={`/app/orgs/${orgId}/learn/${row.progress.courseId}`}
+                <Button
+                  variant="ghost"
+                  render={<Link href={`/app/orgs/${orgId}/learn/${row.progress.courseId}`} />}
                 >
                   Open
-                </Link>
+                </Button>
               ) : null}
             </div>
           ))}

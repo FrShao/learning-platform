@@ -1,10 +1,20 @@
 'use client';
 
 import type { OrgRole } from '@lp/domain';
+import {
+  BookOpen,
+  GraduationCap,
+  Home,
+  LineChart,
+  Route,
+  Settings,
+  type LucideIcon,
+} from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 import { canAuthor } from '@/lib/roles';
+import { cn } from '@/lib/utils';
 
 function isActive(pathname: string, href: string): boolean {
   if (href === pathname) return true;
@@ -23,20 +33,49 @@ export function PrimaryNav({
   const pathname = usePathname();
   const author = canAuthor(role);
 
-  const items = [
-    { href: `/app/orgs/${orgId}`, label: 'Home', match: 'exact' as const },
+  const items: { href: string; label: string; match: 'exact' | 'prefix'; icon: LucideIcon }[] = [
+    { href: `/app/orgs/${orgId}`, label: 'Home', match: 'exact', icon: Home },
     ...(author
       ? [
-          { href: `/app/orgs/${orgId}/courses`, label: 'Courses', match: 'prefix' as const },
-          { href: `/app/orgs/${orgId}/paths`, label: 'Paths', match: 'prefix' as const },
+          {
+            href: `/app/orgs/${orgId}/courses`,
+            label: 'Courses',
+            match: 'prefix' as const,
+            icon: BookOpen,
+          },
+          {
+            href: `/app/orgs/${orgId}/paths`,
+            label: 'Paths',
+            match: 'prefix' as const,
+            icon: Route,
+          },
         ]
       : []),
-    { href: `/app/orgs/${orgId}/learn`, label: 'Learn', match: 'prefix' as const },
+    {
+      href: `/app/orgs/${orgId}/learn`,
+      label: 'Learn',
+      match: 'prefix',
+      icon: GraduationCap,
+    },
     ...(!author
-      ? [{ href: `/app/orgs/${orgId}/progress`, label: 'Progress', match: 'prefix' as const }]
+      ? [
+          {
+            href: `/app/orgs/${orgId}/progress`,
+            label: 'Progress',
+            match: 'prefix' as const,
+            icon: LineChart,
+          },
+        ]
       : []),
     ...(author || role === 'admin' || role === 'owner'
-      ? [{ href: `/app/orgs/${orgId}/settings`, label: 'Settings', match: 'prefix' as const }]
+      ? [
+          {
+            href: `/app/orgs/${orgId}/settings`,
+            label: 'Settings',
+            match: 'prefix' as const,
+            icon: Settings,
+          },
+        ]
       : []),
   ];
 
@@ -48,14 +87,16 @@ export function PrimaryNav({
             ? pathname === item.href
             : isActive(pathname, item.href) &&
               !(item.href.endsWith('/courses') && pathname.includes('/learn'));
+        const Icon = item.icon;
         return (
           <Link
             key={item.href}
             href={item.href}
-            className={active ? 'nav-link active' : 'nav-link'}
+            className={cn('nav-link', active && 'active')}
             aria-current={active ? 'page' : undefined}
           >
-            {item.label}
+            <Icon className="size-4 shrink-0 opacity-80" aria-hidden />
+            <span>{item.label}</span>
           </Link>
         );
       })}

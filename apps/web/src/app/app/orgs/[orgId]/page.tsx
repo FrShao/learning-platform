@@ -1,10 +1,13 @@
 'use client';
 
+import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 
 import { EmptyState, ErrorState, LoadingBlock } from '@/components/states/async-state';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api/client';
 import type { CourseDto, OrganizationDto } from '@/lib/api/types';
 import { useAuth } from '@/lib/auth/auth-context';
@@ -108,18 +111,16 @@ export default function OrgHomePage() {
         <section className="stack">
           <div className="page-header">
             <h2 style={{ margin: 0, fontSize: '1.25rem' }}>Recent courses</h2>
-            <Link className="btn btn-secondary" href={`/app/orgs/${orgId}/courses`}>
+            <Button variant="secondary" render={<Link href={`/app/orgs/${orgId}/courses`} />}>
               View all
-            </Link>
+            </Button>
           </div>
           {recent.length === 0 ? (
             <EmptyState
               title="No courses yet"
               description="Create a course to start a working tree on the main branch."
               action={
-                <Link className="btn btn-primary" href={`/app/orgs/${orgId}/courses`}>
-                  Go to courses
-                </Link>
+                <Button render={<Link href={`/app/orgs/${orgId}/courses`} />}>Go to courses</Button>
               }
             />
           ) : (
@@ -131,9 +132,19 @@ export default function OrgHomePage() {
                     <div className="meta-row">
                       <span>/{c.slug}</span>
                       {c.publishedCommitId ? (
-                        <span className="badge ok">Published</span>
+                        <Badge
+                          variant="secondary"
+                          className="bg-[var(--accent-soft)] text-[var(--accent-deep)] border-0"
+                        >
+                          Published
+                        </Badge>
                       ) : (
-                        <span className="badge warn">Unpublished</span>
+                        <Badge
+                          variant="outline"
+                          className="border-amber-700/20 bg-[#fff1d6] text-[var(--warn)]"
+                        >
+                          Unpublished
+                        </Badge>
                       )}
                     </div>
                   </div>
@@ -155,7 +166,7 @@ export default function OrgHomePage() {
               {published.slice(0, 5).map((c) => (
                 <Link key={c.id} href={`/app/orgs/${orgId}/learn/${c.id}`} className="list-row">
                   <strong>{c.title}</strong>
-                  <span className="muted">Open →</span>
+                  <ArrowRight className="size-4 text-muted-foreground" aria-hidden />
                 </Link>
               ))}
             </div>

@@ -13,6 +13,7 @@ import {
 import { BlockInspector } from '@/components/course/block-inspector';
 import { CourseContextBar } from '@/components/course/course-context-bar';
 import { EmptyState, ErrorState, LoadingBlock } from '@/components/states/async-state';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api/client';
 import type {
@@ -238,9 +239,9 @@ export default function CourseEditorPage() {
             {saveState === 'error' ? ' · Save failed' : null}
           </p>
         </div>
-        <Link className="btn btn-ghost" href={`/app/me/courses/${courseId}`}>
+        <Button variant="ghost" render={<Link href={`/app/me/courses/${courseId}`} />}>
           Overview
-        </Link>
+        </Button>
       </div>
 
       <CourseContextBar
@@ -328,7 +329,7 @@ export default function CourseEditorPage() {
                     onClick={() => setSelectedBlockId(b.id)}
                   >
                     <div className="meta-row">
-                      <span className="badge">{b.type}</span>
+                      <Badge variant="outline">{b.type}</Badge>
                       <span className="muted">{b.id}</span>
                     </div>
                     <p style={{ margin: '0.4rem 0 0' }}>{blockSummary(b)}</p>

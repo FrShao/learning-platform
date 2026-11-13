@@ -147,9 +147,12 @@ export default function PathEditorPage() {
           <h1>{path.title}</h1>
           <p>{path.description || 'Attach published course sections as a lesson tree.'}</p>
         </div>
-        <Link className="btn btn-secondary" href={`/app/orgs/${orgId}/learn/paths/${pathId}`}>
+        <Button
+          variant="secondary"
+          render={<Link href={`/app/orgs/${orgId}/learn/paths/${pathId}`} />}
+        >
           Learner view
-        </Link>
+        </Button>
       </div>
 
       <section className="panel">
