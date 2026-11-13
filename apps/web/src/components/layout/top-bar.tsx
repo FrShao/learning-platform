@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -122,7 +123,9 @@ export function TopBar({
               }
             />
             <DropdownMenuContent align="end" className="min-w-52">
-              <DropdownMenuLabel className="font-normal">{user.email}</DropdownMenuLabel>
+              <DropdownMenuGroup>
+                <DropdownMenuLabel className="font-normal">{user.email}</DropdownMenuLabel>
+              </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuItem render={<Link href="/app" />}>Home</DropdownMenuItem>
               <DropdownMenuItem render={<Link href="/app/explore" />}>Explore</DropdownMenuItem>
