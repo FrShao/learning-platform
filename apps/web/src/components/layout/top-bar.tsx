@@ -1,10 +1,20 @@
 'use client';
 
+import { ChevronDown, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
 
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/lib/auth/auth-context';
 import { roleLabel } from '@/lib/roles';
 
@@ -21,11 +31,16 @@ export function TopBar({
 }) {
   const { user, memberships, signOut } = useAuth();
   const router = useRouter();
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [orgOpen, setOrgOpen] = useState(false);
 
   const currentRole = memberships.find((m) => m.orgId === orgId)?.role;
   const showSwitcher = Boolean(orgId) || personal;
+  const initials =
+    user?.name
+      ?.split(/\s+/)
+      .map((p) => p[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase() ?? '?';
 
   return (
     <header className="top-bar">
@@ -34,122 +49,106 @@ export function TopBar({
           Learning<span>Platform</span>
         </Link>
         {showSwitcher ? (
-          <div className="org-switcher">
-            <button
-              type="button"
-              className="org-switcher-btn"
-              aria-expanded={orgOpen}
-              onClick={() => setOrgOpen((v) => !v)}
-            >
-              <span className="org-switcher-label">
-                {personal ? 'Personal library' : (orgName ?? 'Organization')}
-              </span>
-              {!personal && currentRole ? (
-                <span className="role-chip">{roleLabel(currentRole)}</span>
-              ) : null}
-              <span aria-hidden>▾</span>
-            </button>
-            {orgOpen ? (
-              <div className="dropdown-panel">
-                <Link href="/app" className="dropdown-item" onClick={() => setOrgOpen(false)}>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <button type="button" className="org-switcher-btn">
+                  <span className="org-switcher-label">
+                    {personal ? 'Personal library' : (orgName ?? 'Organization')}
+                  </span>
+                  {!personal && currentRole ? (
+                    <Badge variant="secondary" className="role-chip border-0">
+                      {roleLabel(currentRole)}
+                    </Badge>
+                  ) : null}
+                  <ChevronDown className="size-4 shrink-0 opacity-70" aria-hidden />
+                </button>
+              }
+            />
+            <DropdownMenuContent align="start" className="min-w-56">
+              <DropdownMenuItem render={<Link href="/app" />}>
+                <div className="grid gap-0.5">
                   <strong>Learner home</strong>
-                  <span>Your enrollments & explore</span>
-                </Link>
-                <Link
-                  href="/app/me"
-                  className={personal ? 'dropdown-item active' : 'dropdown-item'}
-                  onClick={() => setOrgOpen(false)}
-                >
+                  <span className="text-xs text-muted-foreground">Your enrollments & explore</span>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem render={<Link href="/app/me" />}>
+                <div className="grid gap-0.5">
                   <strong>Personal library</strong>
-                  <span>Your courses & paths</span>
-                </Link>
-                {memberships.map((m) => (
-                  <Link
-                    key={m.orgId}
-                    href={`/app/orgs/${m.orgId}`}
-                    className={m.orgId === orgId ? 'dropdown-item active' : 'dropdown-item'}
-                    onClick={() => setOrgOpen(false)}
-                  >
+                  <span className="text-xs text-muted-foreground">Your courses & paths</span>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              {memberships.map((m) => (
+                <DropdownMenuItem key={m.orgId} render={<Link href={`/app/orgs/${m.orgId}`} />}>
+                  <div className="grid gap-0.5">
                     <strong>{m.org.name}</strong>
-                    <span>{roleLabel(m.role)}</span>
-                  </Link>
-                ))}
-                <Link
-                  href="/app/orgs/new"
-                  className="dropdown-item"
-                  onClick={() => setOrgOpen(false)}
-                >
-                  Create organization
-                </Link>
-                <Link
-                  href="/app/workspaces"
-                  className="dropdown-item"
-                  onClick={() => setOrgOpen(false)}
-                >
-                  All organizations
-                </Link>
-              </div>
-            ) : null}
-          </div>
+                    <span className="text-xs text-muted-foreground">{roleLabel(m.role)}</span>
+                  </div>
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem render={<Link href="/app/orgs/new" />}>
+                Create organization
+              </DropdownMenuItem>
+              <DropdownMenuItem render={<Link href="/app/workspaces" />}>
+                All organizations
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         ) : null}
         {learner ? (
-          <span className="role-chip" style={{ marginLeft: '0.35rem' }}>
+          <Badge
+            variant="secondary"
+            className="role-chip border-0"
+            style={{ marginLeft: '0.35rem' }}
+          >
             Learner
-          </span>
+          </Badge>
         ) : null}
       </div>
       <div className="top-bar-right">
         {user ? (
-          <div className="user-menu">
-            <button
-              type="button"
-              className="user-menu-btn"
-              aria-expanded={menuOpen}
-              onClick={() => setMenuOpen((v) => !v)}
-            >
-              {user.name}
-            </button>
-            {menuOpen ? (
-              <div className="dropdown-panel align-end">
-                <div className="dropdown-meta">{user.email}</div>
-                <Link href="/app" className="dropdown-item" onClick={() => setMenuOpen(false)}>
-                  Home
-                </Link>
-                <Link
-                  href="/app/explore"
-                  className="dropdown-item"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Explore
-                </Link>
-                <Link
-                  href="/app/account/lessons"
-                  className="dropdown-item"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Lessons
-                </Link>
-                <Link
-                  href="/app/workspaces"
-                  className="dropdown-item"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Organizations
-                </Link>
-                <Button
-                  variant="ghost"
-                  className="dropdown-item-btn"
-                  onClick={() => {
-                    signOut();
-                    router.push('/login');
-                  }}
-                >
-                  Sign out
-                </Button>
-              </div>
-            ) : null}
-          </div>
-        ) : null}
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <button type="button" className="user-menu-btn">
+                  <Avatar className="size-6">
+                    <AvatarFallback className="text-[0.65rem]">{initials}</AvatarFallback>
+                  </Avatar>
+                  <span className="org-switcher-label">{user.name}</span>
+                  <ChevronDown className="size-4 shrink-0 opacity-70" aria-hidden />
+                </button>
+              }
+            />
+            <DropdownMenuContent align="end" className="min-w-52">
+              <DropdownMenuLabel className="font-normal">{user.email}</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem render={<Link href="/app" />}>Home</DropdownMenuItem>
+              <DropdownMenuItem render={<Link href="/app/explore" />}>Explore</DropdownMenuItem>
+              <DropdownMenuItem render={<Link href="/app/account/lessons" />}>
+                Lessons
+              </DropdownMenuItem>
+              <DropdownMenuItem render={<Link href="/app/workspaces" />}>
+                Organizations
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => {
+                  signOut();
+                  router.push('/login');
+                }}
+              >
+                <LogOut className="size-4" />
+                Sign out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <Button variant="ghost" render={<Link href="/login" />}>
+            Sign in
+          </Button>
+        )}
       </div>
     </header>
   );

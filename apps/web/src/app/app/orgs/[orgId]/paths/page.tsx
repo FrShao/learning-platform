@@ -7,7 +7,10 @@ import { type FormEvent, useEffect, useState } from 'react';
 
 import { EmptyState, ErrorState, LoadingBlock } from '@/components/states/async-state';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Modal } from '@/components/ui/modal';
+import { Textarea } from '@/components/ui/textarea';
 import { api } from '@/lib/api/client';
 import type { PathDto } from '@/lib/api/types';
 import { ApiError } from '@/lib/api/types';
@@ -110,12 +113,18 @@ export default function PathsListPage() {
                 {p.description ? <p className="muted">{p.description}</p> : null}
               </div>
               <div className="cta-row">
-                <Link className="btn btn-secondary" href={`/app/orgs/${orgId}/paths/${p.id}`}>
+                <Button
+                  variant="secondary"
+                  render={<Link href={`/app/orgs/${orgId}/paths/${p.id}`} />}
+                >
                   Edit tree
-                </Link>
-                <Link className="btn btn-ghost" href={`/app/orgs/${orgId}/learn/paths/${p.id}`}>
+                </Button>
+                <Button
+                  variant="ghost"
+                  render={<Link href={`/app/orgs/${orgId}/learn/paths/${p.id}`} />}
+                >
                   Learner view
-                </Link>
+                </Button>
               </div>
             </div>
           ))}
@@ -138,13 +147,19 @@ export default function PathsListPage() {
           }
         >
           <form id="create-path" className="form-grid" onSubmit={(e) => void onCreate(e)}>
-            <label className="field">
-              <span>Title</span>
-              <input required value={title} onChange={(e) => setTitle(e.target.value)} />
-            </label>
-            <label className="field">
-              <span>Slug</span>
-              <input
+            <div className="field">
+              <Label htmlFor="create-title">Title</Label>
+              <Input
+                id="create-title"
+                required
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
+            </div>
+            <div className="field">
+              <Label htmlFor="create-slug">Slug</Label>
+              <Input
+                id="create-slug"
                 required
                 value={slug}
                 onChange={(e) => setSlug(normalizeOrgSlug(e.target.value))}
@@ -152,15 +167,16 @@ export default function PathsListPage() {
                   if (!slug && title) setSlug(normalizeOrgSlug(title));
                 }}
               />
-            </label>
-            <label className="field">
-              <span>Description</span>
-              <textarea
+            </div>
+            <div className="field">
+              <Label htmlFor="create-description">Description</Label>
+              <Textarea
+                id="create-description"
                 rows={3}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
               />
-            </label>
+            </div>
             {formError ? <p className="form-error">{formError}</p> : null}
           </form>
         </Modal>

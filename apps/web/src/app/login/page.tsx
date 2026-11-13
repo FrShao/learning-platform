@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { type FormEvent, Suspense, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useAuth } from '@/lib/auth/auth-context';
 import { errorMessage } from '@/lib/format';
 
@@ -46,26 +48,28 @@ function LoginForm() {
           <h1>Sign in</h1>
           <p className="lede">Use your email and password to continue.</p>
         </div>
-        <label className="field">
-          <span>Email</span>
-          <input
+        <div className="field">
+          <Label htmlFor="login-email">Email</Label>
+          <Input
+            id="login-email"
             type="email"
             autoComplete="email"
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
-        </label>
-        <label className="field">
-          <span>Password</span>
-          <input
+        </div>
+        <div className="field">
+          <Label htmlFor="login-password">Password</Label>
+          <Input
+            id="login-password"
             type="password"
             autoComplete="current-password"
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-        </label>
+        </div>
         {error ? <p className="form-error">{error}</p> : null}
         <Button type="submit" disabled={busy}>
           {busy ? 'Signing in…' : 'Sign in'}

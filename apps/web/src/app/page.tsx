@@ -1,9 +1,11 @@
 'use client';
 
+import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
+import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth/auth-context';
 
 export default function LandingPage() {
@@ -23,12 +25,10 @@ export default function LandingPage() {
           Learning<span>Platform</span>
         </Link>
         <div className="cta-row">
-          <Link className="btn btn-ghost" href="/login">
+          <Button variant="ghost" render={<Link href="/login" />}>
             Sign in
-          </Link>
-          <Link className="btn btn-primary" href="/register">
-            Create account
-          </Link>
+          </Button>
+          <Button render={<Link href="/register" />}>Create account</Button>
         </div>
       </nav>
       <section className="landing-hero">
@@ -41,15 +41,22 @@ export default function LandingPage() {
           progress section by section.
         </p>
         <div className="cta-row">
-          <Link className="btn btn-primary" href="/register">
+          <Button render={<Link href="/register" />}>
             Get started
-          </Link>
-          <Link className="btn btn-secondary" href="/login">
+            <ArrowRight className="size-4" aria-hidden />
+          </Button>
+          <Button variant="secondary" render={<Link href="/login" />}>
             Sign in
-          </Link>
+          </Button>
         </div>
         <div className="hero-visual" aria-hidden>
-          <strong>Working tree → commit → publish</strong>
+          <strong className="inline-flex flex-wrap items-center gap-2">
+            Working tree
+            <ArrowRight className="size-4 opacity-80" />
+            commit
+            <ArrowRight className="size-4 opacity-80" />
+            publish
+          </strong>
           <p style={{ margin: '0.35rem 0 0', opacity: 0.85 }}>
             Authors edit dirty trees. Learners only see the published commit.
           </p>

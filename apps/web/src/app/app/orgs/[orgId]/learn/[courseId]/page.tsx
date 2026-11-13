@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { ProgressMeter } from '@/components/learner/progress-meter';
 import { EmptyState, ErrorState, LoadingBlock } from '@/components/states/async-state';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api/client';
 import { ApiError } from '@/lib/api/types';
@@ -128,9 +129,9 @@ export default function LearnerCourseDetailPage() {
         title="Not published"
         description="This course has no published commit yet."
         action={
-          <Link className="btn btn-secondary" href={`/app/orgs/${orgId}/learn`}>
+          <Button variant="secondary" render={<Link href={`/app/orgs/${orgId}/learn`} />}>
             Back to catalog
-          </Link>
+          </Button>
         }
       />
     );
@@ -175,12 +176,16 @@ export default function LearnerCourseDetailPage() {
           </div>
           {progress.currentSectionId ? (
             <div style={{ marginTop: '0.85rem' }}>
-              <Link
-                className="btn btn-secondary"
-                href={`/app/orgs/${orgId}/learn/${courseId}/enrollments/${progress.enrollmentId}/sections/${progress.currentSectionId}`}
+              <Button
+                variant="secondary"
+                render={
+                  <Link
+                    href={`/app/orgs/${orgId}/learn/${courseId}/enrollments/${progress.enrollmentId}/sections/${progress.currentSectionId}`}
+                  />
+                }
               >
                 Resume current section
-              </Link>
+              </Button>
             </div>
           ) : null}
         </div>
@@ -204,8 +209,15 @@ export default function LearnerCourseDetailPage() {
                     <div className="meta-row">
                       <span>/{s.slug}</span>
                       <span>{s.blocks.length} blocks</span>
-                      {done ? <span className="badge ok">Done</span> : null}
-                      {current && !done ? <span className="badge">Current</span> : null}
+                      {done ? (
+                        <Badge
+                          variant="secondary"
+                          className="bg-[var(--accent-soft)] text-[var(--accent-deep)] border-0"
+                        >
+                          Done
+                        </Badge>
+                      ) : null}
+                      {current && !done ? <Badge variant="secondary">Current</Badge> : null}
                     </div>
                   </div>
                 </div>

@@ -84,12 +84,16 @@ export default function DiffPage() {
             Dirty working tree vs base commit on <strong>{decodedBranch}</strong>.
           </p>
         </div>
-        <Link
-          className="btn btn-ghost"
-          href={`/app/orgs/${orgId}/courses/${courseId}/edit/branches/${encodeURIComponent(decodedBranch)}`}
+        <Button
+          variant="ghost"
+          render={
+            <Link
+              href={`/app/orgs/${orgId}/courses/${courseId}/edit/branches/${encodeURIComponent(decodedBranch)}`}
+            />
+          }
         >
           Back to editor
-        </Link>
+        </Button>
       </div>
 
       <CourseContextBar

@@ -1,11 +1,14 @@
 'use client';
 
+import { Compass, Home, Library } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 
 import { RequireAuth } from './require-auth';
 import { TopBar } from './top-bar';
+
+import { cn } from '@/lib/utils';
 
 function isActive(pathname: string, href: string, exact = false): boolean {
   if (exact) return pathname === href;
@@ -23,9 +26,9 @@ export function LearnerShell({ children }: { children: ReactNode }) {
 function LearnerShellInner({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const items = [
-    { href: '/app', label: 'Home', exact: true },
-    { href: '/app/explore', label: 'Explore', exact: true },
-    { href: '/app/account/lessons', label: 'Lessons', exact: true },
+    { href: '/app', label: 'Home', exact: true, icon: Home },
+    { href: '/app/explore', label: 'Explore', exact: true, icon: Compass },
+    { href: '/app/account/lessons', label: 'Lessons', exact: true, icon: Library },
   ];
 
   return (
@@ -36,14 +39,16 @@ function LearnerShellInner({ children }: { children: ReactNode }) {
           <nav className="primary-nav primary-nav-side" aria-label="Learner">
             {items.map((item) => {
               const active = isActive(pathname, item.href, item.exact === true);
+              const Icon = item.icon;
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={active ? 'nav-link active' : 'nav-link'}
+                  className={cn('nav-link', active && 'active')}
                   aria-current={active ? 'page' : undefined}
                 >
-                  {item.label}
+                  <Icon className="size-4 shrink-0 opacity-80" aria-hidden />
+                  <span>{item.label}</span>
                 </Link>
               );
             })}
@@ -56,14 +61,16 @@ function LearnerShellInner({ children }: { children: ReactNode }) {
         <nav className="primary-nav primary-nav-bottom" aria-label="Learner">
           {items.map((item) => {
             const active = isActive(pathname, item.href, item.exact === true);
+            const Icon = item.icon;
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={active ? 'nav-link active' : 'nav-link'}
+                className={cn('nav-link', active && 'active')}
                 aria-current={active ? 'page' : undefined}
               >
-                {item.label}
+                <Icon className="size-4 shrink-0 opacity-80" aria-hidden />
+                <span>{item.label}</span>
               </Link>
             );
           })}

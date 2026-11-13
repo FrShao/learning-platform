@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
 import { EmptyState, ErrorState, LoadingBlock } from '@/components/states/async-state';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Modal } from '@/components/ui/modal';
 import { api } from '@/lib/api/client';
@@ -81,16 +82,24 @@ export default function CourseOverviewPage() {
             <span>/{course.slug}</span>
             <span>default branch: {course.defaultBranch}</span>
             {course.publishedCommitId ? (
-              <span className="badge ok">Published {shortId(course.publishedCommitId)}</span>
+              <Badge
+                variant="secondary"
+                className="bg-[var(--accent-soft)] text-[var(--accent-deep)] border-0"
+              >
+                Published {shortId(course.publishedCommitId)}
+              </Badge>
             ) : (
-              <span className="badge warn">Unpublished</span>
+              <Badge
+                variant="outline"
+                className="border-amber-700/20 bg-[#fff1d6] text-[var(--warn)]"
+              >
+                Unpublished
+              </Badge>
             )}
           </div>
         </div>
         <div className="cta-row">
-          <Link className="btn btn-primary" href={editHref}>
-            Open editor
-          </Link>
+          <Button render={<Link href={editHref} />}>Open editor</Button>
           <Button variant="secondary" onClick={() => setPublishOpen(true)}>
             Publish…
           </Button>
@@ -139,9 +148,9 @@ export default function CourseOverviewPage() {
             title="No sections yet"
             description="Open the editor and add sections to the working tree."
             action={
-              <Link className="btn btn-secondary" href={editHref}>
+              <Button variant="secondary" render={<Link href={editHref} />}>
                 Open editor
-              </Link>
+              </Button>
             }
           />
         ) : (

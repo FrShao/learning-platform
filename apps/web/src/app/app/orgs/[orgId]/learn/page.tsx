@@ -1,10 +1,13 @@
 'use client';
 
+import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 
 import { EmptyState, ErrorState, LoadingBlock } from '@/components/states/async-state';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api/client';
 import type { CourseDto, PathDto } from '@/lib/api/types';
 import { listCachedEnrollments } from '@/lib/enrollment-cache';
@@ -62,13 +65,13 @@ export default function CatalogPage() {
           </p>
         </div>
         <div className="cta-row">
-          <Link className="btn btn-secondary" href="/app/explore">
+          <Button variant="secondary" render={<Link href="/app/explore" />}>
             Explore all
-          </Link>
+          </Button>
           {enrolledCount > 0 ? (
-            <Link className="btn btn-secondary" href={`/app/orgs/${orgId}/progress`}>
+            <Button variant="secondary" render={<Link href={`/app/orgs/${orgId}/progress`} />}>
               My progress ({enrolledCount})
-            </Link>
+            </Button>
           ) : null}
         </div>
       </div>
@@ -85,11 +88,11 @@ export default function CatalogPage() {
                   <strong>{p.title}</strong>
                   <div className="meta-row">
                     <span>/{p.slug}</span>
-                    <span className="badge">Path</span>
+                    <Badge variant="secondary">Path</Badge>
                   </div>
                   {p.description ? <p className="muted">{p.description}</p> : null}
                 </div>
-                <span className="muted">Open →</span>
+                <ArrowRight className="size-4 text-muted-foreground" aria-hidden />
               </Link>
             ))}
           </div>
@@ -111,11 +114,16 @@ export default function CatalogPage() {
                   <strong>{c.title}</strong>
                   <div className="meta-row">
                     <span>/{c.slug}</span>
-                    <span className="badge ok">Published</span>
+                    <Badge
+                      variant="secondary"
+                      className="bg-[var(--accent-soft)] text-[var(--accent-deep)] border-0"
+                    >
+                      Published
+                    </Badge>
                   </div>
                   {c.description ? <p className="muted">{c.description}</p> : null}
                 </div>
-                <span className="muted">Open →</span>
+                <ArrowRight className="size-4 text-muted-foreground" aria-hidden />
               </Link>
             ))}
           </div>

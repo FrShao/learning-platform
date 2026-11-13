@@ -1,5 +1,6 @@
 'use client';
 
+import { CheckCircle2, CircleDot, Lock } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -164,9 +165,9 @@ export default function SectionReaderPage() {
             <ProgressMeter percent={progress?.percent ?? 0} />
           </div>
         </div>
-        <Link className="btn btn-ghost" href={`/app/orgs/${orgId}/learn/${courseId}`}>
+        <Button variant="ghost" render={<Link href={`/app/orgs/${orgId}/learn/${courseId}`} />}>
           Course outline
-        </Link>
+        </Button>
       </div>
 
       {versionMismatch ? (
@@ -196,7 +197,10 @@ export default function SectionReaderPage() {
             if (lock) {
               return (
                 <div key={s.id} className={className}>
-                  ○ {s.title}
+                  <span className="inline-flex items-center gap-2">
+                    <Lock className="size-3.5 opacity-70" aria-hidden />
+                    {s.title}
+                  </span>
                 </div>
               );
             }
@@ -206,7 +210,17 @@ export default function SectionReaderPage() {
                 className={className}
                 href={`/app/orgs/${orgId}/learn/${courseId}/enrollments/${enrollmentId}/sections/${s.id}`}
               >
-                {done ? '✓' : '●'} {s.title}
+                {done ? (
+                  <span className="inline-flex items-center gap-2">
+                    <CheckCircle2 className="size-3.5" aria-hidden />
+                    {s.title}
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-2">
+                    <CircleDot className="size-3.5" aria-hidden />
+                    {s.title}
+                  </span>
+                )}
               </Link>
             );
           })}
@@ -224,12 +238,16 @@ export default function SectionReaderPage() {
               action={(() => {
                 const firstIncomplete = sections.find((s) => !completed.has(s.id) && !isLocked(s));
                 return firstIncomplete ? (
-                  <Link
-                    className="btn btn-secondary"
-                    href={`/app/orgs/${orgId}/learn/${courseId}/enrollments/${enrollmentId}/sections/${firstIncomplete.id}`}
+                  <Button
+                    variant="secondary"
+                    render={
+                      <Link
+                        href={`/app/orgs/${orgId}/learn/${courseId}/enrollments/${enrollmentId}/sections/${firstIncomplete.id}`}
+                      />
+                    }
                   >
                     Go to next available
-                  </Link>
+                  </Button>
                 ) : null;
               })()}
             />
@@ -297,9 +315,12 @@ export default function SectionReaderPage() {
                   </Button>
                 ) : null}
                 {sectionDone && !nextSection ? (
-                  <Link className="btn btn-secondary" href={`/app/orgs/${orgId}/learn/${courseId}`}>
+                  <Button
+                    variant="secondary"
+                    render={<Link href={`/app/orgs/${orgId}/learn/${courseId}`} />}
+                  >
                     Back to course
-                  </Link>
+                  </Button>
                 ) : null}
               </div>
             </>

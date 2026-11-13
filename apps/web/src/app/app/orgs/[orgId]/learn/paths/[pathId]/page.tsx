@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { ProgressMeter } from '@/components/learner/progress-meter';
 import { EmptyState, ErrorState, LoadingBlock } from '@/components/states/async-state';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api/client';
 import type { PathDto, PathNodeDto, PathProgressDto } from '@/lib/api/types';
@@ -133,13 +134,23 @@ export default function PathLearnerPage() {
                   <strong>{n.title || n.sectionId}</strong>
                   <div className="meta-row">
                     {done ? (
-                      <span className="badge ok">Done</span>
+                      <Badge
+                        variant="secondary"
+                        className="bg-[var(--accent-soft)] text-[var(--accent-deep)] border-0"
+                      >
+                        Done
+                      </Badge>
                     ) : open && enrollmentId ? (
-                      <span className="badge">Unlocked</span>
+                      <Badge variant="secondary">Unlocked</Badge>
                     ) : enrollmentId ? (
-                      <span className="badge warn">Locked</span>
+                      <Badge
+                        variant="outline"
+                        className="border-amber-700/20 bg-[#fff1d6] text-[var(--warn)]"
+                      >
+                        Locked
+                      </Badge>
                     ) : (
-                      <span className="badge">Lesson</span>
+                      <Badge variant="secondary">Lesson</Badge>
                     )}
                     <Link className="muted" href={`/app/orgs/${orgId}/learn/${n.courseId}`}>
                       Open course

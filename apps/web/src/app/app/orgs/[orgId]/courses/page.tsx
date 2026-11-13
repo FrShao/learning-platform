@@ -6,8 +6,12 @@ import { useParams, useRouter } from 'next/navigation';
 import { type FormEvent, useEffect, useState } from 'react';
 
 import { EmptyState, ErrorState, LoadingBlock } from '@/components/states/async-state';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Modal } from '@/components/ui/modal';
+import { Textarea } from '@/components/ui/textarea';
 import { api } from '@/lib/api/client';
 import type { CourseDto } from '@/lib/api/types';
 import { ApiError } from '@/lib/api/types';
@@ -108,20 +112,36 @@ export default function CoursesListPage() {
                   <span>/{c.slug}</span>
                   <span>default: {c.defaultBranch}</span>
                   {c.publishedCommitId ? (
-                    <span className="badge ok">Published</span>
+                    <Badge
+                      variant="secondary"
+                      className="bg-[var(--accent-soft)] text-[var(--accent-deep)] border-0"
+                    >
+                      Published
+                    </Badge>
                   ) : (
-                    <span className="badge warn">Unpublished</span>
+                    <Badge
+                      variant="outline"
+                      className="border-amber-700/20 bg-[#fff1d6] text-[var(--warn)]"
+                    >
+                      Unpublished
+                    </Badge>
                   )}
                 </div>
               </div>
               <div className="cta-row">
-                <Link className="btn btn-secondary" href={`/app/orgs/${orgId}/courses/${c.id}`}>
+                <Button
+                  variant="secondary"
+                  render={<Link href={`/app/orgs/${orgId}/courses/${c.id}`} />}
+                >
                   Overview
-                </Link>
+                </Button>
                 {c.publishedCommitId ? (
-                  <Link className="btn btn-ghost" href={`/app/orgs/${orgId}/learn/${c.id}`}>
+                  <Button
+                    variant="ghost"
+                    render={<Link href={`/app/orgs/${orgId}/learn/${c.id}`} />}
+                  >
                     Preview
-                  </Link>
+                  </Button>
                 ) : null}
               </div>
             </div>
@@ -145,13 +165,19 @@ export default function CoursesListPage() {
           }
         >
           <form id="create-course" className="form-grid" onSubmit={(e) => void onCreate(e)}>
-            <label className="field">
-              <span>Title</span>
-              <input required value={title} onChange={(e) => setTitle(e.target.value)} />
-            </label>
-            <label className="field">
-              <span>Slug</span>
-              <input
+            <div className="field">
+              <Label htmlFor="create-title">Title</Label>
+              <Input
+                id="create-title"
+                required
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
+            </div>
+            <div className="field">
+              <Label htmlFor="create-slug">Slug</Label>
+              <Input
+                id="create-slug"
                 required
                 value={slug}
                 onChange={(e) => setSlug(normalizeOrgSlug(e.target.value))}
@@ -159,15 +185,16 @@ export default function CoursesListPage() {
                   if (!slug && title) setSlug(normalizeOrgSlug(title));
                 }}
               />
-            </label>
-            <label className="field">
-              <span>Description</span>
-              <textarea
+            </div>
+            <div className="field">
+              <Label htmlFor="create-description">Description</Label>
+              <Textarea
+                id="create-description"
                 rows={3}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
               />
-            </label>
+            </div>
             {formError ? <p className="form-error">{formError}</p> : null}
           </form>
         </Modal>

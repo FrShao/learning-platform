@@ -5,6 +5,7 @@ import { useParams, useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useState } from 'react';
 
 import { EmptyState, ErrorState, LoadingBlock } from '@/components/states/async-state';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Modal } from '@/components/ui/modal';
 import { api } from '@/lib/api/client';
@@ -73,15 +74,19 @@ function HistoryInner() {
           </p>
         </div>
         <div className="cta-row">
-          <Link
-            className="btn btn-secondary"
-            href={`/app/orgs/${orgId}/courses/${courseId}/edit/branches/${encodeURIComponent(branch)}`}
+          <Button
+            variant="secondary"
+            render={
+              <Link
+                href={`/app/orgs/${orgId}/courses/${courseId}/edit/branches/${encodeURIComponent(branch)}`}
+              />
+            }
           >
             Editor
-          </Link>
-          <Link className="btn btn-ghost" href={`/app/orgs/${orgId}/courses/${courseId}`}>
+          </Button>
+          <Button variant="ghost" render={<Link href={`/app/orgs/${orgId}/courses/${courseId}`} />}>
             Overview
-          </Link>
+          </Button>
         </div>
       </div>
 
@@ -101,16 +106,25 @@ function HistoryInner() {
                   <div className="meta-row">
                     <span>{shortId(c.id, 12)}</span>
                     <span>{formatDate(c.createdAt)}</span>
-                    {published ? <span className="badge ok">Published</span> : null}
+                    {published ? (
+                      <Badge
+                        variant="secondary"
+                        className="bg-[var(--accent-soft)] text-[var(--accent-deep)] border-0"
+                      >
+                        Published
+                      </Badge>
+                    ) : null}
                   </div>
                 </div>
                 <div className="cta-row">
-                  <Link
-                    className="btn btn-secondary"
-                    href={`/app/orgs/${orgId}/courses/${courseId}/commits/${c.id}`}
+                  <Button
+                    variant="secondary"
+                    render={
+                      <Link href={`/app/orgs/${orgId}/courses/${courseId}/commits/${c.id}`} />
+                    }
                   >
                     Snapshot
-                  </Link>
+                  </Button>
                   <Button variant="ghost" onClick={() => setPublishId(c.id)}>
                     Publish
                   </Button>

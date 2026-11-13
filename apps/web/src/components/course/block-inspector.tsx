@@ -8,6 +8,7 @@ import {
   newOptionId,
   newQuestionId,
 } from '@/components/course/block-factories';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api/client';
 import type {
@@ -87,7 +88,7 @@ export function BlockInspector({
   return (
     <div className="stack block-inspector">
       <div className="meta-row">
-        <span className="badge">{draft.type}</span>
+        <Badge variant="outline">{draft.type}</Badge>
         <span className="muted">{draft.id}</span>
       </div>
 

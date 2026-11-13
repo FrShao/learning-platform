@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { type FormEvent, useCallback, useEffect, useState } from 'react';
 
 import { EmptyState, ErrorState, LoadingBlock } from '@/components/states/async-state';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Modal } from '@/components/ui/modal';
 import { api } from '@/lib/api/client';
@@ -103,16 +104,27 @@ export default function BranchesPage() {
                   <strong>{b.name}</strong>
                   <div className="meta-row">
                     <span>head {shortId(b.headCommitId)}</span>
-                    {isDefault ? <span className="badge ok">Default</span> : null}
+                    {isDefault ? (
+                      <Badge
+                        variant="secondary"
+                        className="bg-[var(--accent-soft)] text-[var(--accent-deep)] border-0"
+                      >
+                        Default
+                      </Badge>
+                    ) : null}
                   </div>
                 </div>
                 <div className="cta-row">
-                  <Link
-                    className="btn btn-secondary"
-                    href={`/app/orgs/${orgId}/courses/${courseId}/edit/branches/${encodeURIComponent(b.name)}`}
+                  <Button
+                    variant="secondary"
+                    render={
+                      <Link
+                        href={`/app/orgs/${orgId}/courses/${courseId}/edit/branches/${encodeURIComponent(b.name)}`}
+                      />
+                    }
                   >
                     Checkout
-                  </Link>
+                  </Button>
                   {!isDefault ? (
                     <Button variant="danger" onClick={() => void onDelete(b.name)}>
                       Delete

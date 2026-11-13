@@ -1,11 +1,14 @@
 'use client';
 
+import { BookOpen, Building2, Compass, Home, Library, Route } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 
 import { RequireAuth } from './require-auth';
 import { TopBar } from './top-bar';
+
+import { cn } from '@/lib/utils';
 
 function isActive(pathname: string, href: string, exact = false): boolean {
   if (exact) return pathname === href;
@@ -23,11 +26,11 @@ export function PersonalShell({ children }: { children: ReactNode }) {
 function PersonalShellInner({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const items = [
-    { href: '/app', label: 'Learn', exact: true },
-    { href: '/app/account/lessons', label: 'Lessons', exact: true },
-    { href: '/app/me', label: 'Library', exact: true },
-    { href: '/app/me/courses', label: 'Courses' },
-    { href: '/app/me/paths', label: 'Paths' },
+    { href: '/app', label: 'Learn', exact: true, icon: Compass },
+    { href: '/app/account/lessons', label: 'Lessons', exact: true, icon: Library },
+    { href: '/app/me', label: 'Library', exact: true, icon: Home },
+    { href: '/app/me/courses', label: 'Courses', icon: BookOpen },
+    { href: '/app/me/paths', label: 'Paths', icon: Route },
   ];
 
   return (
@@ -38,14 +41,16 @@ function PersonalShellInner({ children }: { children: ReactNode }) {
           <nav className="primary-nav primary-nav-side" aria-label="Personal">
             {items.map((item) => {
               const active = isActive(pathname, item.href, item.exact === true);
+              const Icon = item.icon;
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={active ? 'nav-link active' : 'nav-link'}
+                  className={cn('nav-link', active && 'active')}
                   aria-current={active ? 'page' : undefined}
                 >
-                  {item.label}
+                  <Icon className="size-4 shrink-0 opacity-80" aria-hidden />
+                  <span>{item.label}</span>
                 </Link>
               );
             })}
@@ -54,7 +59,13 @@ function PersonalShellInner({ children }: { children: ReactNode }) {
             Personal courses and paths are owned by you — no organization required.
           </p>
           <p className="side-rail-hint">
-            <Link href="/app/workspaces">Organizations →</Link>
+            <Link
+              href="/app/workspaces"
+              className="inline-flex items-center gap-1 font-semibold text-primary"
+            >
+              Organizations
+              <Building2 className="size-3.5" aria-hidden />
+            </Link>
           </p>
         </aside>
         <main className="app-main">{children}</main>
@@ -63,14 +74,16 @@ function PersonalShellInner({ children }: { children: ReactNode }) {
         <nav className="primary-nav primary-nav-bottom" aria-label="Personal">
           {items.map((item) => {
             const active = isActive(pathname, item.href, item.exact === true);
+            const Icon = item.icon;
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={active ? 'nav-link active' : 'nav-link'}
+                className={cn('nav-link', active && 'active')}
                 aria-current={active ? 'page' : undefined}
               >
-                {item.label}
+                <Icon className="size-4 shrink-0 opacity-80" aria-hidden />
+                <span>{item.label}</span>
               </Link>
             );
           })}
