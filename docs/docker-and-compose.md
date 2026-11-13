@@ -204,7 +204,7 @@ Multi-stage pattern (see Dockerfiles under [`docs/docker/apps/`](./docker/apps/)
 
 1. **`deps`** — install workspace deps with pnpm (frozen lockfile when present).
 2. **`build`** — compile the target app + needed packages.
-3. **`runner`** — copy production `node_modules` + build output; run as non-root `node` user (uid 1000); lean Alpine/distroless-friendly Node 22 image.
+3. **`runner`** — copy production `node_modules` + build output; run as non-root `node` user (uid 1000); lean Alpine/distroless-friendly Node 26 image.
 
 Shared rules:
 

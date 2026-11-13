@@ -28,7 +28,7 @@ scripts/        Entrypoints and smoke runner
 
 ## Prerequisites
 
-- Node.js 22+
+- Node.js 26+
 - [pnpm](https://pnpm.io) 9 (`corepack enable && corepack prepare pnpm@9 --activate`)
 - Docker Engine + Compose v2 (for the full stack / integration DB)
 
