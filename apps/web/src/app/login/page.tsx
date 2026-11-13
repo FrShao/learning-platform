@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { type FormEvent, Suspense, useState } from 'react';
+import { type FormEvent, Suspense, useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,9 +20,11 @@ function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  if (status === 'authenticated') {
-    router.replace(next);
-  }
+  useEffect(() => {
+    if (status === 'authenticated') {
+      router.replace(next);
+    }
+  }, [status, router, next]);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
