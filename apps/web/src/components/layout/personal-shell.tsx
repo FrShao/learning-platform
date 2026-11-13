@@ -1,6 +1,6 @@
 'use client';
 
-import { BookOpen, Building2, Home, Route } from 'lucide-react';
+import { BookOpen, Building2, Compass, Home, Library, Route } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
@@ -26,7 +26,9 @@ export function PersonalShell({ children }: { children: ReactNode }) {
 function PersonalShellInner({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const items = [
-    { href: '/app/me', label: 'Home', exact: true, icon: Home },
+    { href: '/app', label: 'Learn', exact: true, icon: Compass },
+    { href: '/app/account/lessons', label: 'Lessons', exact: true, icon: Library },
+    { href: '/app/me', label: 'Library', exact: true, icon: Home },
     { href: '/app/me/courses', label: 'Courses', icon: BookOpen },
     { href: '/app/me/paths', label: 'Paths', icon: Route },
   ];
@@ -57,7 +59,10 @@ function PersonalShellInner({ children }: { children: ReactNode }) {
             Personal courses and paths are owned by you — no organization required.
           </p>
           <p className="side-rail-hint">
-            <Link href="/app" className="inline-flex items-center gap-1 font-semibold text-primary">
+            <Link
+              href="/app/workspaces"
+              className="inline-flex items-center gap-1 font-semibold text-primary"
+            >
               Organizations
               <Building2 className="size-3.5" aria-hidden />
             </Link>

@@ -22,10 +22,12 @@ export function TopBar({
   orgId,
   orgName,
   personal,
+  learner,
 }: {
   orgId?: string | undefined;
   orgName?: string | undefined;
   personal?: boolean | undefined;
+  learner?: boolean | undefined;
 }) {
   const { user, memberships, signOut } = useAuth();
   const router = useRouter();
@@ -43,10 +45,7 @@ export function TopBar({
   return (
     <header className="top-bar">
       <div className="top-bar-left">
-        <Link
-          href={orgId ? `/app/orgs/${orgId}` : personal ? '/app/me' : '/app'}
-          className="brand-mark"
-        >
+        <Link href="/app" className="brand-mark">
           Learning<span>Platform</span>
         </Link>
         {showSwitcher ? (
@@ -67,6 +66,12 @@ export function TopBar({
               }
             />
             <DropdownMenuContent align="start" className="min-w-56">
+              <DropdownMenuItem render={<Link href="/app" />}>
+                <div className="grid gap-0.5">
+                  <strong>Learner home</strong>
+                  <span className="text-xs text-muted-foreground">Your enrollments & explore</span>
+                </div>
+              </DropdownMenuItem>
               <DropdownMenuItem render={<Link href="/app/me" />}>
                 <div className="grid gap-0.5">
                   <strong>Personal library</strong>
@@ -86,9 +91,20 @@ export function TopBar({
               <DropdownMenuItem render={<Link href="/app/orgs/new" />}>
                 Create organization
               </DropdownMenuItem>
-              <DropdownMenuItem render={<Link href="/app" />}>All organizations</DropdownMenuItem>
+              <DropdownMenuItem render={<Link href="/app/workspaces" />}>
+                All organizations
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+        ) : null}
+        {learner ? (
+          <Badge
+            variant="secondary"
+            className="role-chip border-0"
+            style={{ marginLeft: '0.35rem' }}
+          >
+            Learner
+          </Badge>
         ) : null}
       </div>
       <div className="top-bar-right">
@@ -107,6 +123,15 @@ export function TopBar({
             />
             <DropdownMenuContent align="end" className="min-w-52">
               <DropdownMenuLabel className="font-normal">{user.email}</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem render={<Link href="/app" />}>Home</DropdownMenuItem>
+              <DropdownMenuItem render={<Link href="/app/explore" />}>Explore</DropdownMenuItem>
+              <DropdownMenuItem render={<Link href="/app/account/lessons" />}>
+                Lessons
+              </DropdownMenuItem>
+              <DropdownMenuItem render={<Link href="/app/workspaces" />}>
+                Organizations
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => {

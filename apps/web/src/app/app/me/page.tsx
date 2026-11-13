@@ -3,6 +3,7 @@
 import { ArrowRight, BookOpen, Route } from 'lucide-react';
 import Link from 'next/link';
 
+import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/lib/auth/auth-context';
 
@@ -14,8 +15,14 @@ export default function PersonalHomePage() {
       <div className="page-header">
         <div>
           <h1>Personal library</h1>
-          <p>Create courses and paths as {user?.name ?? 'you'} without joining an organization.</p>
+          <p>
+            Create courses and paths as {user?.name ?? 'you'} without joining an organization.
+            Management also lives under <Link href="/app/account/lessons">Account → Lessons</Link>.
+          </p>
         </div>
+        <Button variant="secondary" render={<Link href="/app" />}>
+          Learner home
+        </Button>
       </div>
       <div className="card-list">
         <Link href="/app/me/courses">

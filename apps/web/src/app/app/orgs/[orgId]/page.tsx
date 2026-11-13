@@ -60,9 +60,19 @@ export default function OrgHomePage() {
           <h1>{org.name}</h1>
           <p>
             {author
-              ? 'Jump into courses to edit working trees, or open Learn for the published catalog.'
-              : 'Continue learning from published courses in this organization.'}
+              ? 'Organization authoring hub. Learners land on the app home — not here.'
+              : 'Organization workspace. Continue learning from the app home or this org catalog.'}
           </p>
+        </div>
+        <div className="cta-row">
+          <Button variant="secondary" render={<Link href="/app" />}>
+            Learner home
+          </Button>
+          {author ? (
+            <Button variant="secondary" render={<Link href="/app/account/lessons" />}>
+              Account lessons
+            </Button>
+          ) : null}
         </div>
       </div>
 

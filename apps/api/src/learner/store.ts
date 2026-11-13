@@ -43,6 +43,7 @@ export interface LearnerStore {
     progress: LearnerProgress;
   }>;
   findActiveEnrollment(courseId: CourseId, userId: UserId): Promise<Enrollment | null>;
+  listActiveEnrollmentsByUser(userId: UserId): Promise<Enrollment[]>;
   getEnrollment(enrollmentId: EnrollmentId): Promise<Enrollment | null>;
   getProgress(enrollmentId: EnrollmentId): Promise<LearnerProgress | null>;
   saveProgress(progress: LearnerProgress): Promise<LearnerProgress>;
@@ -98,6 +99,12 @@ export class MemoryLearnerStore implements LearnerStore {
       }
     }
     return null;
+  }
+
+  async listActiveEnrollmentsByUser(userId: UserId): Promise<Enrollment[]> {
+    return [...this.enrollments.values()]
+      .filter((enrollment) => enrollment.userId === userId && enrollment.revokedAt === null)
+      .sort((a, b) => b.enrolledAt.getTime() - a.enrolledAt.getTime());
   }
 
   async getEnrollment(enrollmentId: EnrollmentId): Promise<Enrollment | null> {

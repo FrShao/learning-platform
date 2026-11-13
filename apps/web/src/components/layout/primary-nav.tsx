@@ -3,6 +3,7 @@
 import type { OrgRole } from '@lp/domain';
 import {
   BookOpen,
+  Compass,
   GraduationCap,
   Home,
   LineChart,
@@ -34,7 +35,8 @@ export function PrimaryNav({
   const author = canAuthor(role);
 
   const items: { href: string; label: string; match: 'exact' | 'prefix'; icon: LucideIcon }[] = [
-    { href: `/app/orgs/${orgId}`, label: 'Home', match: 'exact', icon: Home },
+    { href: '/app', label: 'Learn home', match: 'exact', icon: Compass },
+    { href: `/app/orgs/${orgId}`, label: 'Org hub', match: 'exact', icon: Home },
     ...(author
       ? [
           {
@@ -53,7 +55,7 @@ export function PrimaryNav({
       : []),
     {
       href: `/app/orgs/${orgId}/learn`,
-      label: 'Learn',
+      label: 'Org catalog',
       match: 'prefix',
       icon: GraduationCap,
     },

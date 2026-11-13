@@ -9,7 +9,7 @@ import {
   type PathNode,
   type PathProgress,
 } from '@lp/domain';
-import { and, asc, desc, eq, isNull } from 'drizzle-orm';
+import { and, asc, desc, eq, isNotNull, isNull } from 'drizzle-orm';
 
 import type { Db } from '../client.js';
 import { mapPath, mapPathEnrollment, mapPathNode, mapPathProgress } from '../mappers/paths.js';
@@ -44,6 +44,25 @@ export class PathRepository {
       .where(and(eq(learningPaths.ownerUserId, ownerUserId), isNull(learningPaths.deletedAt)))
       .orderBy(desc(learningPaths.updatedAt));
     return rows.map(mapPath);
+  }
+
+  /** User-owned paths (learnable by any authenticated caller). */
+  async listUserOwned(): Promise<Path[]> {
+    const rows = await this.db
+      .select()
+      .from(learningPaths)
+      .where(and(isNotNull(learningPaths.ownerUserId), isNull(learningPaths.deletedAt)))
+      .orderBy(desc(learningPaths.updatedAt));
+    return rows.map(mapPath);
+  }
+
+  async listActiveEnrollmentsByUser(userId: string): Promise<PathEnrollment[]> {
+    const rows = await this.db
+      .select()
+      .from(pathEnrollments)
+      .where(and(eq(pathEnrollments.userId, userId), isNull(pathEnrollments.revokedAt)))
+      .orderBy(desc(pathEnrollments.enrolledAt));
+    return rows.map(mapPathEnrollment);
   }
 
   async getById(pathId: string): Promise<Path | null> {

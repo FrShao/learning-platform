@@ -5,6 +5,7 @@ import type {
   ApiKeyScope,
   AssetDto,
   AuthTokenResponse,
+  CatalogResponse,
   CourseBranchDto,
   CourseCommitDto,
   CourseDto,
@@ -14,6 +15,7 @@ import type {
   FormAttemptResultDto,
   LearnerProgressDto,
   MeResponse,
+  MyEnrollmentsResponse,
   OrgMemberDto,
   OrganizationDto,
   PathDto,
@@ -128,6 +130,12 @@ export const api = {
   },
   me(token?: string | null) {
     return apiRequest<MeResponse>('/me', token === undefined ? {} : { token });
+  },
+  getCatalog() {
+    return apiRequest<CatalogResponse>('/me/catalog');
+  },
+  getMyEnrollments() {
+    return apiRequest<MyEnrollmentsResponse>('/me/enrollments');
   },
   getOrg(orgId: string) {
     return apiRequest<OrganizationDto>(`/orgs/${orgId}`);

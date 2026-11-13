@@ -58,14 +58,22 @@ export default function CatalogPage() {
     <div className="page">
       <div className="page-header">
         <div>
-          <h1>Learn</h1>
-          <p>Published courses and learning paths in this organization.</p>
+          <h1>Org catalog</h1>
+          <p>
+            Published courses and paths in this organization. Prefer the{' '}
+            <Link href="/app">learner home</Link> for enrollments across workspaces.
+          </p>
         </div>
-        {enrolledCount > 0 ? (
-          <Button variant="secondary" render={<Link href={`/app/orgs/${orgId}/progress`} />}>
-            My progress ({enrolledCount})
+        <div className="cta-row">
+          <Button variant="secondary" render={<Link href="/app/explore" />}>
+            Explore all
           </Button>
-        ) : null}
+          {enrolledCount > 0 ? (
+            <Button variant="secondary" render={<Link href={`/app/orgs/${orgId}/progress`} />}>
+              My progress ({enrolledCount})
+            </Button>
+          ) : null}
+        </div>
       </div>
 
       <section className="panel">
@@ -75,7 +83,7 @@ export default function CatalogPage() {
         ) : (
           <div className="card-list">
             {paths.map((p) => (
-              <Link key={p.id} href={`/app/orgs/${orgId}/learn/paths/${p.id}`} className="list-row">
+              <Link key={p.id} href={`/app/learn/paths/${p.id}`} className="list-row">
                 <div>
                   <strong>{p.title}</strong>
                   <div className="meta-row">
@@ -101,7 +109,7 @@ export default function CatalogPage() {
         ) : (
           <div className="card-list">
             {published.map((c) => (
-              <Link key={c.id} href={`/app/orgs/${orgId}/learn/${c.id}`} className="list-row">
+              <Link key={c.id} href={`/app/learn/courses/${c.id}`} className="list-row">
                 <div>
                   <strong>{c.title}</strong>
                   <div className="meta-row">

@@ -2,42 +2,25 @@
 
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 
 import { RequireAuth } from '@/components/layout/require-auth';
 import { TopBar } from '@/components/layout/top-bar';
 import { EmptyState } from '@/components/states/async-state';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { getLastOrgId } from '@/lib/api/client';
 import { useAuth } from '@/lib/auth/auth-context';
 import { roleLabel } from '@/lib/roles';
 
-export default function OrgPickerPage() {
+export default function WorkspacesPage() {
   return (
     <RequireAuth>
-      <OrgPickerInner />
+      <WorkspacesInner />
     </RequireAuth>
   );
 }
 
-function OrgPickerInner() {
+function WorkspacesInner() {
   const { memberships } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    const last = getLastOrgId();
-    if (last && memberships.some((m) => m.orgId === last)) {
-      router.replace(`/app/orgs/${last}`);
-      return;
-    }
-    // Do not auto-redirect when the user has no orgs — personal library is available.
-    if (memberships.length === 1) {
-      const only = memberships[0];
-      if (only) router.replace(`/app/orgs/${only.orgId}`);
-    }
-  }, [memberships, router]);
 
   return (
     <div className="app-frame">
@@ -45,10 +28,16 @@ function OrgPickerInner() {
       <main className="app-main page">
         <div className="page-header">
           <div>
-            <h1>Where to work</h1>
-            <p>Use your personal library without an org, or open an organization.</p>
+            <h1>Organizations</h1>
+            <p>
+              Organization management and authoring live here. Learning starts from{' '}
+              <Link href="/app">home</Link>.
+            </p>
           </div>
           <div className="cta-row">
+            <Button variant="secondary" render={<Link href="/app/account/lessons" />}>
+              Account lessons
+            </Button>
             <Button variant="secondary" render={<Link href="/app/me" />}>
               Personal library
             </Button>
