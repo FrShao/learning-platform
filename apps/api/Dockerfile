@@ -3,7 +3,7 @@
 # Build context: monorepo root
 #   docker build -f apps/api/Dockerfile --target runner -t lp-api .
 
-ARG NODE_VERSION=22
+ARG NODE_VERSION=26
 
 # ---------- deps ----------
 FROM node:${NODE_VERSION}-alpine AS deps

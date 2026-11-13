@@ -4,7 +4,7 @@
   "type": "module",
   "packageManager": "pnpm@9.15.9",
   "engines": {
-    "node": ">=22"
+    "node": ">=26"
   },
   "scripts": {
     "build": "pnpm -r --filter=./packages/* build && pnpm -r --filter=./apps/* build",
@@ -29,7 +29,7 @@
     "@lp/domain": "workspace:^",
     "@lp/eslint-config": "workspace:*",
     "@lp/tsconfig": "workspace:*",
-    "@types/node": "^22.13.10",
+    "@types/node": "^26.0.0",
     "@typescript-eslint/eslint-plugin": "^8.26.1",
     "@typescript-eslint/parser": "^8.26.1",
     "eslint": "^9.22.0",
