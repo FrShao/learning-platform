@@ -36,6 +36,14 @@ export class PathService {
     return this.repo.listByOwnerUser(ownerUserId);
   }
 
+  listUserOwnedPaths(): Promise<Path[]> {
+    return this.repo.listUserOwned();
+  }
+
+  listActiveEnrollmentsForUser(userId: string): Promise<PathEnrollment[]> {
+    return this.repo.listActiveEnrollmentsByUser(userId);
+  }
+
   async getPath(pathId: string): Promise<Path> {
     const path = await this.repo.getById(pathId);
     if (!path) {

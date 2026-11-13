@@ -24,14 +24,15 @@ export function PrimaryNav({
   const author = canAuthor(role);
 
   const items = [
-    { href: `/app/orgs/${orgId}`, label: 'Home', match: 'exact' as const },
+    { href: '/app', label: 'Learn home', match: 'exact' as const },
+    { href: `/app/orgs/${orgId}`, label: 'Org hub', match: 'exact' as const },
     ...(author
       ? [
           { href: `/app/orgs/${orgId}/courses`, label: 'Courses', match: 'prefix' as const },
           { href: `/app/orgs/${orgId}/paths`, label: 'Paths', match: 'prefix' as const },
         ]
       : []),
-    { href: `/app/orgs/${orgId}/learn`, label: 'Learn', match: 'prefix' as const },
+    { href: `/app/orgs/${orgId}/learn`, label: 'Org catalog', match: 'prefix' as const },
     ...(!author
       ? [{ href: `/app/orgs/${orgId}/progress`, label: 'Progress', match: 'prefix' as const }]
       : []),

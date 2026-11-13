@@ -16,9 +16,7 @@ Phase 1 assumed every course and path lived under an organization. Authors witho
 Model exclusive ownership as:
 
 ```ts
-type ResourceOwner =
-  | { kind: 'user'; userId: UserId }
-  | { kind: 'org'; orgId: OrgId };
+type ResourceOwner = { kind: 'user'; userId: UserId } | { kind: 'org'; orgId: OrgId };
 ```
 
 Persist with nullable `org_id` and `owner_user_id` columns and a CHECK that exactly one is set (XOR). Slug uniqueness is scoped per owner (`(org_id, slug)` or `(owner_user_id, slug)` among non-deleted rows).

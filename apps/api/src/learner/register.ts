@@ -17,6 +17,7 @@ export async function registerLearnerRoutes(app: FastifyInstance, client: DbClie
     courses,
     memberships,
   });
+  app.decorate('learnerStore', runtime.store);
 
   const paths = [
     { method: 'POST' as const, url: '/v1/courses/:courseId/enroll' },

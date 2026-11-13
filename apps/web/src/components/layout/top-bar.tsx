@@ -12,10 +12,12 @@ export function TopBar({
   orgId,
   orgName,
   personal,
+  learner,
 }: {
   orgId?: string | undefined;
   orgName?: string | undefined;
   personal?: boolean | undefined;
+  learner?: boolean | undefined;
 }) {
   const { user, memberships, signOut } = useAuth();
   const router = useRouter();
@@ -28,7 +30,7 @@ export function TopBar({
   return (
     <header className="top-bar">
       <div className="top-bar-left">
-        <Link href={orgId ? `/app/orgs/${orgId}` : personal ? '/app/me' : '/app'} className="brand-mark">
+        <Link href="/app" className="brand-mark">
           Learning<span>Platform</span>
         </Link>
         {showSwitcher ? (
@@ -49,6 +51,10 @@ export function TopBar({
             </button>
             {orgOpen ? (
               <div className="dropdown-panel">
+                <Link href="/app" className="dropdown-item" onClick={() => setOrgOpen(false)}>
+                  <strong>Learner home</strong>
+                  <span>Your enrollments & explore</span>
+                </Link>
                 <Link
                   href="/app/me"
                   className={personal ? 'dropdown-item active' : 'dropdown-item'}
@@ -75,12 +81,21 @@ export function TopBar({
                 >
                   Create organization
                 </Link>
-                <Link href="/app" className="dropdown-item" onClick={() => setOrgOpen(false)}>
+                <Link
+                  href="/app/workspaces"
+                  className="dropdown-item"
+                  onClick={() => setOrgOpen(false)}
+                >
                   All organizations
                 </Link>
               </div>
             ) : null}
           </div>
+        ) : null}
+        {learner ? (
+          <span className="role-chip" style={{ marginLeft: '0.35rem' }}>
+            Learner
+          </span>
         ) : null}
       </div>
       <div className="top-bar-right">
@@ -97,6 +112,30 @@ export function TopBar({
             {menuOpen ? (
               <div className="dropdown-panel align-end">
                 <div className="dropdown-meta">{user.email}</div>
+                <Link href="/app" className="dropdown-item" onClick={() => setMenuOpen(false)}>
+                  Home
+                </Link>
+                <Link
+                  href="/app/explore"
+                  className="dropdown-item"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Explore
+                </Link>
+                <Link
+                  href="/app/account/lessons"
+                  className="dropdown-item"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Lessons
+                </Link>
+                <Link
+                  href="/app/workspaces"
+                  className="dropdown-item"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Organizations
+                </Link>
                 <Button
                   variant="ghost"
                   className="dropdown-item-btn"

@@ -97,9 +97,7 @@ export interface ApiKeyCreatedDto extends ApiKeyDto {
   secret: string;
 }
 
-export type ResourceOwnerDto =
-  | { kind: 'user'; userId: UserId }
-  | { kind: 'org'; orgId: OrgId };
+export type ResourceOwnerDto = { kind: 'user'; userId: UserId } | { kind: 'org'; orgId: OrgId };
 
 export interface CourseDto {
   id: string;
@@ -223,9 +221,32 @@ export interface EnrollmentDto {
   id: string;
   courseId: string;
   userId: UserId;
-  orgId: OrgId;
+  orgId: OrgId | null;
   createdAt?: string;
   enrolledAt?: string;
+  revokedAt?: string | null;
+}
+
+export interface CatalogResponse {
+  courses: CourseDto[];
+  paths: PathDto[];
+}
+
+export interface CourseEnrollmentRowDto {
+  enrollment: EnrollmentDto;
+  progress: LearnerProgressDto | null;
+  course: CourseDto | null;
+}
+
+export interface PathEnrollmentRowDto {
+  enrollment: PathEnrollmentDto;
+  progress: PathProgressDto | null;
+  path: PathDto | null;
+}
+
+export interface MyEnrollmentsResponse {
+  courses: CourseEnrollmentRowDto[];
+  paths: PathEnrollmentRowDto[];
 }
 
 export interface LearnerProgressDto {

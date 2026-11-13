@@ -39,6 +39,7 @@ declare module 'fastify' {
     courseService: CourseService;
     pathService: PathService;
     assetService: AssetService;
+    learnerStore: import('./learner/store.js').LearnerStore;
     jwtSecret: string;
   }
   interface FastifyRequest {
@@ -203,12 +204,12 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
   }));
 
   await registerAuthRoutes(app);
-  await registerMeRoutes(app);
   await registerOrgRoutes(app);
   await registerCourseRoutes(app, app.courseService);
   await registerPathRoutes(app, app.pathService);
   await registerAssetRoutes(app, app.assetService);
   await registerLearnerRoutes(app, client);
+  await registerMeRoutes(app);
 
   const closeDb = options.closeDbOnClose !== false && !options.db;
   if (closeDb) {

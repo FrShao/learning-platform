@@ -32,6 +32,10 @@ export class CourseService {
     return this.repo.listByOwnerUser(ownerUserId);
   }
 
+  listPublishedUserOwnedCourses(): Promise<Course[]> {
+    return this.repo.listPublishedUserOwned();
+  }
+
   async getCourse(courseId: string): Promise<Course> {
     const course = await this.repo.getById(courseId);
     if (!course) {

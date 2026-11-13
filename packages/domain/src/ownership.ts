@@ -4,9 +4,7 @@ import type { OrgId, UserId } from './ids.js';
 import { roleHasCapability } from './roles.js';
 
 /** Exclusive owner of a course or path. */
-export type ResourceOwner =
-  | { kind: 'user'; userId: UserId }
-  | { kind: 'org'; orgId: OrgId };
+export type ResourceOwner = { kind: 'user'; userId: UserId } | { kind: 'org'; orgId: OrgId };
 
 /**
  * Build a ResourceOwner from mutually exclusive DB columns.
@@ -24,11 +22,10 @@ export function resourceOwnerFromColumns(
   if (hasUser && !hasOrg) {
     return { kind: 'user', userId: ownerUserId };
   }
-  throw new DomainError(
-    'validation',
-    'Ownership must be exactly one of orgId or ownerUserId',
-    { orgId: orgId ?? null, ownerUserId: ownerUserId ?? null },
-  );
+  throw new DomainError('validation', 'Ownership must be exactly one of orgId or ownerUserId', {
+    orgId: orgId ?? null,
+    ownerUserId: ownerUserId ?? null,
+  });
 }
 
 export function ownerOrgId(owner: ResourceOwner): OrgId | null {
@@ -50,9 +47,7 @@ export function canAuthorOwnedResource(
   if (owner.kind === 'user') {
     return owner.userId === actor.userId;
   }
-  return (
-    actor.orgRole != null && roleHasCapability(actor.orgRole, 'create_edit_commit_courses')
-  );
+  return actor.orgRole != null && roleHasCapability(actor.orgRole, 'create_edit_commit_courses');
 }
 
 /**

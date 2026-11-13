@@ -11,7 +11,7 @@ import {
   type CourseWorkingTree,
 } from '@lp/domain';
 import { hashCourseTree } from '@lp/domain/course-hash';
-import { and, desc, eq, isNull, sql } from 'drizzle-orm';
+import { and, desc, eq, isNotNull, isNull, sql } from 'drizzle-orm';
 
 import type { Db } from '../client.js';
 import {
@@ -57,6 +57,22 @@ export class CourseRepository {
       .select()
       .from(courses)
       .where(and(eq(courses.ownerUserId, ownerUserId), isNull(courses.deletedAt)))
+      .orderBy(desc(courses.updatedAt));
+    return rows.map(mapCourse);
+  }
+
+  /** Published courses owned by any user (learnable by any authenticated caller). */
+  async listPublishedUserOwned(): Promise<Course[]> {
+    const rows = await this.db
+      .select()
+      .from(courses)
+      .where(
+        and(
+          isNotNull(courses.ownerUserId),
+          isNotNull(courses.publishedCommitId),
+          isNull(courses.deletedAt),
+        ),
+      )
       .orderBy(desc(courses.updatedAt));
     return rows.map(mapCourse);
   }

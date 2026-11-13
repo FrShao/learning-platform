@@ -23,7 +23,9 @@ export function PersonalShell({ children }: { children: ReactNode }) {
 function PersonalShellInner({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const items = [
-    { href: '/app/me', label: 'Home', exact: true },
+    { href: '/app', label: 'Learn', exact: true },
+    { href: '/app/account/lessons', label: 'Lessons', exact: true },
+    { href: '/app/me', label: 'Library', exact: true },
     { href: '/app/me/courses', label: 'Courses' },
     { href: '/app/me/paths', label: 'Paths' },
   ];
@@ -52,7 +54,7 @@ function PersonalShellInner({ children }: { children: ReactNode }) {
             Personal courses and paths are owned by you — no organization required.
           </p>
           <p className="side-rail-hint">
-            <Link href="/app">Organizations →</Link>
+            <Link href="/app/workspaces">Organizations →</Link>
           </p>
         </aside>
         <main className="app-main">{children}</main>

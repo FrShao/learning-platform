@@ -14,8 +14,12 @@ export default function PersonalHomePage() {
           <h1>Personal library</h1>
           <p>
             Create courses and paths as {user?.name ?? 'you'} without joining an organization.
+            Management also lives under <Link href="/app/account/lessons">Account → Lessons</Link>.
           </p>
         </div>
+        <Link className="btn btn-secondary" href="/app">
+          Learner home
+        </Link>
       </div>
       <div className="card-list">
         <Link href="/app/me/courses" className="list-row">
