@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { type FormEvent, useState } from 'react';
+import { type FormEvent, useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,9 +19,11 @@ export default function RegisterPage() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  if (status === 'authenticated') {
-    router.replace('/app');
-  }
+  useEffect(() => {
+    if (status === 'authenticated') {
+      router.replace('/app');
+    }
+  }, [status, router]);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
